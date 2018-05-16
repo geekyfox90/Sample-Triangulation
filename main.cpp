@@ -126,7 +126,7 @@ int run(std::string& firstImagePath, std::string& secondImagePath, std::string& 
     CamCalibration                                      K;
     CamDistortion                                       dist;
     Transform2Df                                        F;
-    std::vector<SRef<Pose>>                             poses;
+    std::vector<Transform3Df>                             poses;
     // The escape key to exit the sample
     char escape_key = 27;
 
@@ -248,11 +248,12 @@ int run(std::string& firstImagePath, std::string& secondImagePath, std::string& 
 
     std::cout<<" Poses size: "<<poses.size()<<std::endl;
 
+#
     for(int k = 0; k <poses.size(); ++k){
         std::cout<<"--pose: "<<k<<std::endl;
         for(int ii = 0; ii < 4; ++ii){
             for(int jj = 0; jj < 4; ++jj){
-                std::cout<<poses[k]->m_poseTransform(ii,jj)<<" ";
+                std::cout<<poses[k](ii,jj)<<" ";
             }
             std::cout<<std::endl;
         }
@@ -262,15 +263,15 @@ int run(std::string& firstImagePath, std::string& secondImagePath, std::string& 
     std::cout<<"-Triangulate: "<<std::endl;
 
 
-   SRef<Pose>pose_canonique ; //= sptrnms::make_shared<Pose>();
-   fillPoseCanonique(pose_canonique);
+   Transform3Df pose_canonique ; //= sptrnms::make_shared<Pose>();
+ //  fillPoseCanonique(pose_canonique);
 
     for( int k = 0; k < poses.size(); ++k){
      std::cout<<"    - with pose: "<<k<<std::endl;
 
      for(int ii = 0; ii < 4; ++ii){
          for(int jj = 0; jj < 4; ++jj){
-            std::cout<<poses[k]->m_poseTransform(ii,jj)<<" ";
+            std::cout<<poses[k](ii,jj)<<" ";
          }
          std::cout<<std::endl;
       }
@@ -279,7 +280,7 @@ int run(std::string& firstImagePath, std::string& secondImagePath, std::string& 
 
      for(int ii = 0; ii < 4; ++ii){
          for(int jj = 0; jj < 4; ++jj){
-             std::cout<<pose_canonique->m_poseTransform(ii,jj)<<" ";
+             std::cout<<pose_canonique(ii,jj)<<" ";
           }
           std::cout<<std::endl;
       }
