@@ -45,29 +45,27 @@ using namespace SolAR::MODULES::TOOLS;
 namespace xpcf = org::bcom::xpcf;
 
 
-void fillPoseCanonique(SRef<Pose>&pcano){
+void fillPoseCanonique(Transform3Df &pcano){
 
-    pcano = sptrnms::make_shared<Pose>();
+    pcano(0,0) = 1.0;
+    pcano(0,1) = 0.0;
+    pcano(0,2) = 0.0;
+    pcano(0,3) = 0.0;
 
-    pcano->m_poseTransform(0,0) = 1.0;
-    pcano->m_poseTransform(0,1) = 0.0;
-    pcano->m_poseTransform(0,2) = 0.0;
-    pcano->m_poseTransform(0,3) = 0.0;
+    pcano(1,0) = 0.0;
+    pcano(1,1) = 1.0;
+    pcano(1,2) = 0.0;
+    pcano(1,3) = 0.0;
 
-    pcano->m_poseTransform(1,0) = 0.0;
-    pcano->m_poseTransform(1,1) = 1.0;
-    pcano->m_poseTransform(1,2) = 0.0;
-    pcano->m_poseTransform(1,3) = 0.0;
+    pcano(2,0) = 0.0;
+    pcano(2,1) = 0.0;
+    pcano(2,2) = 1.0;
+    pcano(2,3) = 0.0;
 
-    pcano->m_poseTransform(2,0) = 0.0;
-    pcano->m_poseTransform(2,1) = 0.0;
-    pcano->m_poseTransform(2,2) = 1.0;
-    pcano->m_poseTransform(2,3) = 0.0;
-
-    pcano->m_poseTransform(3,0) = 0.0;
-    pcano->m_poseTransform(3,1) = 0.0;
-    pcano->m_poseTransform(3,2) = 0.0;
-    pcano->m_poseTransform(3,3) = 1.0;
+    pcano(3,0) = 0.0;
+    pcano(3,1) = 0.0;
+    pcano(3,2) = 0.0;
+    pcano(3,3) = 1.0;
 }
 
 int run(std::string& firstImagePath, std::string& secondImagePath, std::string& cameraParameters)
@@ -264,7 +262,7 @@ int run(std::string& firstImagePath, std::string& secondImagePath, std::string& 
 
 
    Transform3Df pose_canonique ; //= sptrnms::make_shared<Pose>();
- //  fillPoseCanonique(pose_canonique);
+   fillPoseCanonique(pose_canonique);
 
     for( int k = 0; k < poses.size(); ++k){
      std::cout<<"    - with pose: "<<k<<std::endl;
