@@ -72,22 +72,6 @@ int run(std::string& firstImagePath, std::string& secondImagePath, std::string& 
 {
 
  // declarations
-    xpcf::utils::uuids::string_generator                 gen;
-
-	SRef<input::devices::ICamera>                        camera;
-
-    SRef<image::IImageLoader>                            imageLoader;
-    SRef<features::IKeypointDetector>                    keypointsDetector;
-    SRef<features::IDescriptorsExtractor>                descriptorExtractor;
-
-    SRef<features::IDescriptorMatcher>                   matcher;
-    SRef<display::IImageViewer>                          viewer;
-
-    SRef<solver::pose::I2DTransformFinder>              fundamentalFinder;
-    SRef<solver::pose::I2DTO3DTransformDecomposer>      fundamentalDecomposer;
-    SRef<solver::map::ITriangulator>                    mapper;
-
-    SRef<display::ISideBySideOverlay>                   overlay;
 
     SRef<Image>                                         image1;
     SRef<Image>                                         image2;
@@ -116,8 +100,6 @@ int run(std::string& firstImagePath, std::string& secondImagePath, std::string& 
     SRef<Image>                                         viewerImage2;
     SRef<Image>                                         viewerImage3;
 
-    SRef<features::IMatchesFilter>                      matchesFilterBasic;
-    SRef<features::IMatchesFilter>                      matchesFilterGeometric;
     std::vector<DescriptorMatch>                        gmatches;
     std::vector<DescriptorMatch>                        ggmatches;
 
@@ -130,21 +112,21 @@ int run(std::string& firstImagePath, std::string& secondImagePath, std::string& 
 
  // component creation
 
+    auto camera =xpcf::ComponentFactory::createInstance<SolARCameraOpencv>()->bindTo<input::devices::ICamera>();
+    auto imageLoader =xpcf::ComponentFactory::createInstance<SolARImageLoaderOpencv>()->bindTo<image::IImageLoader>();
+    auto keypointsDetector =xpcf::ComponentFactory::createInstance<SolARKeypointDetectorOpencv>()->bindTo<features::IKeypointDetector>();
+    auto descriptorExtractor =xpcf::ComponentFactory::createInstance<SolARDescriptorsExtractorAKAZE2Opencv>()->bindTo<features::IDescriptorsExtractor>();
+    auto matcher =xpcf::ComponentFactory::createInstance<SolARDescriptorMatcherKNNOpencv>()->bindTo<features::IDescriptorMatcher>();
+    auto overlay =xpcf::ComponentFactory::createInstance<SolARSideBySideOverlayOpencv>()->bindTo<display::ISideBySideOverlay>();
+    auto viewer =xpcf::ComponentFactory::createInstance<SolARImageViewerOpencv>()->bindTo<display::IImageViewer>();
+    auto matchesFilterBasic =xpcf::ComponentFactory::createInstance<SolARBasicMatchesFilter>()->bindTo<features::IMatchesFilter>();
+    auto matchesFilterGeometric =xpcf::ComponentFactory::createInstance<SolARGeometricMatchesFilterOpencv>()->bindTo<features::IMatchesFilter>();
+    auto fundamentalFinder =xpcf::ComponentFactory::createInstance<SolARFundamentalMatrixEstimationOpencv>()->bindTo<solver::pose::I2DTransformFinder>();
+    auto fundamentalDecomposer =xpcf::ComponentFactory::createInstance<SolARSVDFundamentalMatrixDecomposerOpencv>()->bindTo<solver::pose::I2DTO3DTransformDecomposer>();
+    auto mapper =xpcf::ComponentFactory::createInstance<SolARSVDTriangulationOpencv>()->bindTo<solver::map::ITriangulator>();
 
-    xpcf::ComponentFactory::createComponent<SolARCameraOpencv>(camera);
-    xpcf::ComponentFactory::createComponent<SolARImageLoaderOpencv>(imageLoader);
-    xpcf::ComponentFactory::createComponent<SolARKeypointDetectorOpencv>(keypointsDetector);
-    xpcf::ComponentFactory::createComponent<SolARDescriptorsExtractorAKAZE2Opencv>(descriptorExtractor);
-    xpcf::ComponentFactory::createComponent<SolARDescriptorMatcherKNNOpencv>(matcher);
-    xpcf::ComponentFactory::createComponent<SolARSideBySideOverlayOpencv>(overlay);
-    xpcf::ComponentFactory::createComponent<SolARImageViewerOpencv>(viewer);
-    xpcf::ComponentFactory::createComponent<SolARBasicMatchesFilter>(matchesFilterBasic);
-    xpcf::ComponentFactory::createComponent<SolARGeometricMatchesFilterOpencv>(matchesFilterGeometric);
-    xpcf::ComponentFactory::createComponent<SolARFundamentalMatrixEstimationOpencv>(fundamentalFinder);
-    xpcf::ComponentFactory::createComponent<SolARSVDFundamentalMatrixDecomposerOpencv>(fundamentalDecomposer);
-    xpcf::ComponentFactory::createComponent<SolARSVDTriangulationOpencv>(mapper);
 
-	// load camera parameters from yml input file
+    // load camera parameters from yml input file
 	camera->loadCameraParameters(cameraParameters);
 
   // Load the first image
