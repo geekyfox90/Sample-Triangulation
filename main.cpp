@@ -92,7 +92,7 @@ int run(std::string& firstImagePath, std::string& secondImagePath, std::string& 
 
     std::vector<SRef<Point2Df>>                         ggmatchedKeypoints1;
     std::vector<SRef<Point2Df>>                         ggmatchedKeypoints2;
-    std::vector<SRef<Point3Df>>                         gcloud;
+    std::vector<SRef<CloudPoint>>                       gcloud;
 
 
 
@@ -106,7 +106,7 @@ int run(std::string& firstImagePath, std::string& secondImagePath, std::string& 
     CamCalibration                                      K;
     CamDistortion                                       dist;
     Transform2Df                                        F;
-    std::vector<Transform3Df>                             poses;
+    std::vector<Transform3Df>                           poses;
     // The escape key to exit the sample
     char escape_key = 27;
 
@@ -265,7 +265,9 @@ int run(std::string& firstImagePath, std::string& secondImagePath, std::string& 
           std::cout<<std::endl;
       }
      std::cout<<std::endl<<std::endl;
-     mapper->triangulate(ggmatchedKeypoints1,ggmatchedKeypoints2,pose_canonique,poses[k],K,dist,gcloud);
+     std::pair<int, int> working_view = std::make_pair(0, 1);
+     mapper->triangulate(ggmatchedKeypoints1,ggmatchedKeypoints2,ggmatches,working_view,pose_canonique,poses[k],K,dist,gcloud);
+
 
      std::cout<<"--saving cloud: "<<std::endl;
     std::ofstream log_cloud("solar_cloud" +std::to_string(k)+ ".txt");
