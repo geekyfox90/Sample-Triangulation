@@ -18,6 +18,8 @@
 #include <string>
 #include <vector>
 
+#include <boost/log/core.hpp>
+
 // ADD COMPONENTS HEADERS HERE
 
 #include "SolARImageLoaderOpencv.h"
@@ -43,51 +45,33 @@ using namespace SolAR::MODULES::TOOLS;
 namespace xpcf = org::bcom::xpcf;
 
 
-void fillPoseCanonique(SRef<Pose>&pcano){
+void fillPoseCanonique(Transform3Df &pcano){
 
-    pcano = sptrnms::make_shared<Pose>();
+    pcano(0,0) = 1.0;
+    pcano(0,1) = 0.0;
+    pcano(0,2) = 0.0;
+    pcano(0,3) = 0.0;
 
-    pcano->m_poseTransform(0,0) = 1.0;
-    pcano->m_poseTransform(0,1) = 0.0;
-    pcano->m_poseTransform(0,2) = 0.0;
-    pcano->m_poseTransform(0,3) = 0.0;
+    pcano(1,0) = 0.0;
+    pcano(1,1) = 1.0;
+    pcano(1,2) = 0.0;
+    pcano(1,3) = 0.0;
 
-    pcano->m_poseTransform(1,0) = 0.0;
-    pcano->m_poseTransform(1,1) = 1.0;
-    pcano->m_poseTransform(1,2) = 0.0;
-    pcano->m_poseTransform(1,3) = 0.0;
+    pcano(2,0) = 0.0;
+    pcano(2,1) = 0.0;
+    pcano(2,2) = 1.0;
+    pcano(2,3) = 0.0;
 
-    pcano->m_poseTransform(2,0) = 0.0;
-    pcano->m_poseTransform(2,1) = 0.0;
-    pcano->m_poseTransform(2,2) = 1.0;
-    pcano->m_poseTransform(2,3) = 0.0;
-
-    pcano->m_poseTransform(3,0) = 0.0;
-    pcano->m_poseTransform(3,1) = 0.0;
-    pcano->m_poseTransform(3,2) = 0.0;
-    pcano->m_poseTransform(3,3) = 1.0;
+    pcano(3,0) = 0.0;
+    pcano(3,1) = 0.0;
+    pcano(3,2) = 0.0;
+    pcano(3,3) = 1.0;
 }
 
 int run(std::string& firstImagePath, std::string& secondImagePath, std::string& cameraParameters)
 {
 
  // declarations
-    xpcf::utils::uuids::string_generator                 gen;
-
-	SRef<input::devices::ICamera>                        camera;
-
-    SRef<image::IImageLoader>                            imageLoader;
-    SRef<features::IKeypointDetector>                    keypointsDetector;
-    SRef<features::IDescriptorsExtractor>                descriptorExtractor;
-
-    SRef<features::IDescriptorMatcher>                   matcher;
-    SRef<display::IImageViewer>                          viewer;
-
-    SRef<solver::pose::I2DTransformFinder>              fundamentalFinder;
-    SRef<solver::pose::I2DTO3DTransformDecomposer>      fundamentalDecomposer;
-    SRef<solver::map::ITriangulator>                    mapper;
-
-    SRef<display::ISideBySideOverlay>                   overlay;
 
     SRef<Image>                                         image1;
     SRef<Image>                                         image2;
@@ -108,7 +92,7 @@ int run(std::string& firstImagePath, std::string& secondImagePath, std::string& 
 
     std::vector<SRef<Point2Df>>                         ggmatchedKeypoints1;
     std::vector<SRef<Point2Df>>                         ggmatchedKeypoints2;
-    std::vector<SRef<Point3Df>>                         gcloud;
+    std::vector<SRef<CloudPoint>>                       gcloud;
 
 
 
@@ -116,34 +100,33 @@ int run(std::string& firstImagePath, std::string& secondImagePath, std::string& 
     SRef<Image>                                         viewerImage2;
     SRef<Image>                                         viewerImage3;
 
-    SRef<features::IMatchesFilter>                      matchesFilterBasic;
-    SRef<features::IMatchesFilter>                      matchesFilterGeometric;
     std::vector<DescriptorMatch>                        gmatches;
     std::vector<DescriptorMatch>                        ggmatches;
 
     CamCalibration                                      K;
     CamDistortion                                       dist;
     Transform2Df                                        F;
-    std::vector<SRef<Pose>>                             poses;
+    std::vector<Transform3Df>                           poses;
     // The escape key to exit the sample
     char escape_key = 27;
 
  // component creation
 
-	xpcf::ComponentFactory::createComponent<SolARCameraOpencv>(gen(input::devices::ICamera::UUID), camera);
-	xpcf::ComponentFactory::createComponent<SolARImageLoaderOpencv>(gen(image::IImageLoader::UUID ), imageLoader);
-    xpcf::ComponentFactory::createComponent<SolARKeypointDetectorOpencv>(gen(features::IKeypointDetector::UUID ), keypointsDetector);
-	xpcf::ComponentFactory::createComponent<SolARDescriptorsExtractorAKAZE2Opencv>(gen(features::IDescriptorsExtractor::UUID), descriptorExtractor);
-	xpcf::ComponentFactory::createComponent<SolARDescriptorMatcherKNNOpencv>(gen(features::IDescriptorMatcher::UUID), matcher);
-    xpcf::ComponentFactory::createComponent<SolARSideBySideOverlayOpencv>(gen(display::ISideBySideOverlay::UUID ), overlay);
-    xpcf::ComponentFactory::createComponent<SolARImageViewerOpencv>(gen(display::IImageViewer::UUID ), viewer);
-    xpcf::ComponentFactory::createComponent<SolARBasicMatchesFilter>(gen(features::IMatchesFilter::UUID ), matchesFilterBasic);
-    xpcf::ComponentFactory::createComponent<SolARGeometricMatchesFilterOpencv>(gen(features::IMatchesFilter::UUID ), matchesFilterGeometric);
-    xpcf::ComponentFactory::createComponent<SolARFundamentalMatrixEstimationOpencv>(gen(solver::pose::I2DTransformFinder::UUID ), fundamentalFinder);
-    xpcf::ComponentFactory::createComponent<SolARSVDFundamentalMatrixDecomposerOpencv>(gen(solver::pose::I2DTO3DTransformDecomposer::UUID ), fundamentalDecomposer);
-    xpcf::ComponentFactory::createComponent<SolARSVDTriangulationOpencv>(gen(solver::map::ITriangulator::UUID ), mapper);
+    auto camera =xpcf::ComponentFactory::createInstance<SolARCameraOpencv>()->bindTo<input::devices::ICamera>();
+    auto imageLoader =xpcf::ComponentFactory::createInstance<SolARImageLoaderOpencv>()->bindTo<image::IImageLoader>();
+    auto keypointsDetector =xpcf::ComponentFactory::createInstance<SolARKeypointDetectorOpencv>()->bindTo<features::IKeypointDetector>();
+    auto descriptorExtractor =xpcf::ComponentFactory::createInstance<SolARDescriptorsExtractorAKAZE2Opencv>()->bindTo<features::IDescriptorsExtractor>();
+    auto matcher =xpcf::ComponentFactory::createInstance<SolARDescriptorMatcherKNNOpencv>()->bindTo<features::IDescriptorMatcher>();
+    auto overlay =xpcf::ComponentFactory::createInstance<SolARSideBySideOverlayOpencv>()->bindTo<display::ISideBySideOverlay>();
+    auto viewer =xpcf::ComponentFactory::createInstance<SolARImageViewerOpencv>()->bindTo<display::IImageViewer>();
+    auto matchesFilterBasic =xpcf::ComponentFactory::createInstance<SolARBasicMatchesFilter>()->bindTo<features::IMatchesFilter>();
+    auto matchesFilterGeometric =xpcf::ComponentFactory::createInstance<SolARGeometricMatchesFilterOpencv>()->bindTo<features::IMatchesFilter>();
+    auto fundamentalFinder =xpcf::ComponentFactory::createInstance<SolARFundamentalMatrixEstimationOpencv>()->bindTo<solver::pose::I2DTransformFinder>();
+    auto fundamentalDecomposer =xpcf::ComponentFactory::createInstance<SolARSVDFundamentalMatrixDecomposerOpencv>()->bindTo<solver::pose::I2DTO3DTransformDecomposer>();
+    auto mapper =xpcf::ComponentFactory::createInstance<SolARSVDTriangulationOpencv>()->bindTo<solver::map::ITriangulator>();
 
-	// load camera parameters from yml input file
+
+    // load camera parameters from yml input file
 	camera->loadCameraParameters(cameraParameters);
 
   // Load the first image
@@ -245,11 +228,12 @@ int run(std::string& firstImagePath, std::string& secondImagePath, std::string& 
 
     std::cout<<" Poses size: "<<poses.size()<<std::endl;
 
+#
     for(int k = 0; k <poses.size(); ++k){
         std::cout<<"--pose: "<<k<<std::endl;
         for(int ii = 0; ii < 4; ++ii){
             for(int jj = 0; jj < 4; ++jj){
-                std::cout<<poses[k]->m_poseTransform(ii,jj)<<" ";
+                std::cout<<poses[k](ii,jj)<<" ";
             }
             std::cout<<std::endl;
         }
@@ -259,7 +243,7 @@ int run(std::string& firstImagePath, std::string& secondImagePath, std::string& 
     std::cout<<"-Triangulate: "<<std::endl;
 
 
-   SRef<Pose>pose_canonique ; //= sptrnms::make_shared<Pose>();
+   Transform3Df pose_canonique ; //= sptrnms::make_shared<Pose>();
    fillPoseCanonique(pose_canonique);
 
     for( int k = 0; k < poses.size(); ++k){
@@ -267,7 +251,7 @@ int run(std::string& firstImagePath, std::string& secondImagePath, std::string& 
 
      for(int ii = 0; ii < 4; ++ii){
          for(int jj = 0; jj < 4; ++jj){
-            std::cout<<poses[k]->m_poseTransform(ii,jj)<<" ";
+            std::cout<<poses[k](ii,jj)<<" ";
          }
          std::cout<<std::endl;
       }
@@ -276,12 +260,14 @@ int run(std::string& firstImagePath, std::string& secondImagePath, std::string& 
 
      for(int ii = 0; ii < 4; ++ii){
          for(int jj = 0; jj < 4; ++jj){
-             std::cout<<pose_canonique->m_poseTransform(ii,jj)<<" ";
+             std::cout<<pose_canonique(ii,jj)<<" ";
           }
           std::cout<<std::endl;
       }
      std::cout<<std::endl<<std::endl;
-     mapper->triangulate(ggmatchedKeypoints1,ggmatchedKeypoints2,pose_canonique,poses[k],K,dist,gcloud);
+     std::pair<int, int> working_view = std::make_pair(0, 1);
+     mapper->triangulate(ggmatchedKeypoints1,ggmatchedKeypoints2,ggmatches,working_view,pose_canonique,poses[k],K,dist,gcloud);
+
 
      std::cout<<"--saving cloud: "<<std::endl;
     std::ofstream log_cloud("solar_cloud" +std::to_string(k)+ ".txt");
@@ -315,6 +301,10 @@ int printHelp(){
 }
 
 int main(int argc, char **argv){
+
+#if NDEBUG
+    boost::log::core::get()->set_logging_enabled(false);
+#endif
 
 	if (argc == 4) {
 		std::string firstImagePath = std::string(argv[1]);
