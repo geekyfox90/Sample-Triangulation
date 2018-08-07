@@ -22,19 +22,24 @@
 
 // ADD COMPONENTS HEADERS HERE
 
-#include "SolARImageLoaderOpencv.h"
-#include "SolARCameraOpencv.h"
-#include "SolARKeypointDetectorOpencv.h"
-#include "SolARDescriptorsExtractorAKAZE2Opencv.h"
+#include "SolARModuleOpencv_traits.h"
 
-#include "SolARDescriptorMatcherKNNOpencv.h"
-#include "SolARImageViewerOpencv.h"
-#include "SolARSideBySideOverlayOpencv.h"
-#include "SolARBasicMatchesFilter.h"
-#include "SolARGeometricMatchesFilterOpencv.h"
-#include "SolARFundamentalMatrixEstimationOpencv.h"
-#include "SolARSVDFundamentalMatrixDecomposerOpencv.h"
-#include "SolARSVDTriangulationOpencv.h"
+#include "SolARModuleTools_traits.h"
+
+#include "xpcf/xpcf.h"
+
+#include "api/image/IImageLoader.h"
+#include "api/input/devices/ICamera.h"
+#include "api/features/IKeypointDetector.h"
+#include "api/features/IDescriptorsExtractor.h"
+#include "api/features/IDescriptorMatcher.h"
+#include "api/display/IImageViewer.h"
+#include "api/display/ISideBySideOverlay.h"
+#include "api/features/IMatchesFilter.h"
+#include "api/features/IKeypointsReIndexer.h"
+#include "api/solver/pose/I2DTransformFinder.h"
+#include "api/solver/pose/I2Dto3DTransformDecomposer.h"
+#include "api/solver/map/ITriangulator.h"
 
 using namespace SolAR;
 using namespace SolAR::datastructure;
@@ -68,84 +73,93 @@ void fillPoseCanonique(Transform3Df &pcano){
     pcano(3,3) = 1.0;
 }
 
-int run(std::string& firstImagePath, std::string& secondImagePath, std::string& cameraParameters)
-{
+int main(int argc, char **argv){
 
- // declarations
+#if NDEBUG
+    boost::log::core::get()->set_logging_enabled(false);
+#endif
 
-    SRef<Image>                                         image1;
-    SRef<Image>                                         image2;
+    LOG_ADD_LOG_TO_CONSOLE();
 
-    std::vector< SRef<Keypoint>>                        keypoints1;
-    std::vector< SRef<Keypoint>>                        keypoints2;
+    /* instantiate component manager*/
+    /* this is needed in dynamic mode */
+    SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
 
+    if(xpcfComponentManager->load("conf_Triangulation.xml")!=org::bcom::xpcf::_SUCCESS)
+    {
+        LOG_ERROR("Failed to load the configuration file conf_FiducialMarker.xml")
+        return -1;
+    }
 
-    SRef<DescriptorBuffer>                              descriptors1;
-    SRef<DescriptorBuffer>                              descriptors2;
-    std::vector<DescriptorMatch>                        matches;
-
-    std::vector<SRef<Point2Df>>                         matchedKeypoints1;
-    std::vector<SRef<Point2Df>>                         matchedKeypoints2;
-
-    std::vector<SRef<Point2Df>>                         gmatchedKeypoints1;
-    std::vector<SRef<Point2Df>>                         gmatchedKeypoints2;
-
-    std::vector<SRef<Point2Df>>                         ggmatchedKeypoints1;
-    std::vector<SRef<Point2Df>>                         ggmatchedKeypoints2;
-    std::vector<SRef<CloudPoint>>                       gcloud;
-
-
-
-    SRef<Image>                                         viewerImage1;
-    SRef<Image>                                         viewerImage2;
-    SRef<Image>                                         viewerImage3;
-
-    std::vector<DescriptorMatch>                        gmatches;
-    std::vector<DescriptorMatch>                        ggmatches;
-
-    CamCalibration                                      K;
-    CamDistortion                                       dist;
-    Transform2Df                                        F;
-    std::vector<Transform3Df>                           poses;
-    // The escape key to exit the sample
-    char escape_key = 27;
+    // declare and create components
+    LOG_INFO("Start creating components");
 
  // component creation
 
-    auto camera =xpcf::ComponentFactory::createInstance<SolARCameraOpencv>()->bindTo<input::devices::ICamera>();
-    auto imageLoader =xpcf::ComponentFactory::createInstance<SolARImageLoaderOpencv>()->bindTo<image::IImageLoader>();
-    auto keypointsDetector =xpcf::ComponentFactory::createInstance<SolARKeypointDetectorOpencv>()->bindTo<features::IKeypointDetector>();
-    auto descriptorExtractor =xpcf::ComponentFactory::createInstance<SolARDescriptorsExtractorAKAZE2Opencv>()->bindTo<features::IDescriptorsExtractor>();
-    auto matcher =xpcf::ComponentFactory::createInstance<SolARDescriptorMatcherKNNOpencv>()->bindTo<features::IDescriptorMatcher>();
-    auto overlay =xpcf::ComponentFactory::createInstance<SolARSideBySideOverlayOpencv>()->bindTo<display::ISideBySideOverlay>();
-    auto viewer =xpcf::ComponentFactory::createInstance<SolARImageViewerOpencv>()->bindTo<display::IImageViewer>();
-    auto matchesFilterBasic =xpcf::ComponentFactory::createInstance<SolARBasicMatchesFilter>()->bindTo<features::IMatchesFilter>();
-    auto matchesFilterGeometric =xpcf::ComponentFactory::createInstance<SolARGeometricMatchesFilterOpencv>()->bindTo<features::IMatchesFilter>();
-    auto fundamentalFinder =xpcf::ComponentFactory::createInstance<SolARFundamentalMatrixEstimationOpencv>()->bindTo<solver::pose::I2DTransformFinder>();
-    auto fundamentalDecomposer =xpcf::ComponentFactory::createInstance<SolARSVDFundamentalMatrixDecomposerOpencv>()->bindTo<solver::pose::I2DTO3DTransformDecomposer>();
-    auto mapper =xpcf::ComponentFactory::createInstance<SolARSVDTriangulationOpencv>()->bindTo<solver::map::ITriangulator>();
+    auto camera =xpcfComponentManager->create<SolARCameraOpencv>()->bindTo<input::devices::ICamera>();
+    auto imageLoader1 =xpcfComponentManager->create<SolARImageLoaderOpencv>("image1")->bindTo<image::IImageLoader>();
+    auto imageLoader2 =xpcfComponentManager->create<SolARImageLoaderOpencv>("image2")->bindTo<image::IImageLoader>();
+    auto keypointsDetector =xpcfComponentManager->create<SolARKeypointDetectorOpencv>()->bindTo<features::IKeypointDetector>();
+    auto descriptorExtractor =xpcfComponentManager->create<SolARDescriptorsExtractorAKAZE2Opencv>()->bindTo<features::IDescriptorsExtractor>();
+    auto matcher =xpcfComponentManager->create<SolARDescriptorMatcherKNNOpencv>()->bindTo<features::IDescriptorMatcher>();
+    auto overlay =xpcfComponentManager->create<SolARSideBySideOverlayOpencv>()->bindTo<display::ISideBySideOverlay>();
+    auto viewerOriginalMatches =xpcfComponentManager->create<SolARImageViewerOpencv>("originalMatches")->bindTo<display::IImageViewer>();
+    auto viewerRedanduncyFilterMatches =xpcfComponentManager->create<SolARImageViewerOpencv>("redanduncyFilterMatches")->bindTo<display::IImageViewer>();
+    auto viewerEpipolarFilterMatches =xpcfComponentManager->create<SolARImageViewerOpencv>("epipolarFilterMatches")->bindTo<display::IImageViewer>();
+    auto matchesFilterBasic =xpcfComponentManager->create<SolARBasicMatchesFilter>()->bindTo<features::IMatchesFilter>();
+    auto matchesFilterGeometric =xpcfComponentManager->create<SolARGeometricMatchesFilterOpencv>()->bindTo<features::IMatchesFilter>();
+    auto keypointsReindexer = xpcfComponentManager->create<SolARKeypointsReIndexer>()->bindTo<features::IKeypointsReIndexer>();
+    auto fundamentalFinder =xpcfComponentManager->create<SolARFundamentalMatrixEstimationOpencv>()->bindTo<solver::pose::I2DTransformFinder>();
+    auto fundamentalDecomposer =xpcfComponentManager->create<SolARSVDFundamentalMatrixDecomposerOpencv>()->bindTo<solver::pose::I2DTO3DTransformDecomposer>();
+    auto mapper =xpcfComponentManager->create<SolARSVDTriangulationOpencv>()->bindTo<solver::map::ITriangulator>();
 
+    // declarations
 
-    // load camera parameters from yml input file
-	camera->loadCameraParameters(cameraParameters);
+       SRef<Image>                                         image1;
+       SRef<Image>                                         image2;
 
-  // Load the first image
-   if (imageLoader->loadImage(firstImagePath,
-                               image1) != FrameworkReturnCode::_SUCCESS)
-   {
-      LOG_ERROR("Cannot load image with path {}", firstImagePath);
-      return -1;
-   }
+       std::vector< SRef<Keypoint>>                        keypoints1;
+       std::vector< SRef<Keypoint>>                        keypoints2;
 
-   // Load the second image
-   if (imageLoader->loadImage(secondImagePath, image2) != FrameworkReturnCode::_SUCCESS)
-   {
-      LOG_ERROR("Cannot load image with path {}", std::string());
-      return -1;
-   }
+       SRef<DescriptorBuffer>                              descriptors1;
+       SRef<DescriptorBuffer>                              descriptors2;
+       std::vector<DescriptorMatch>                        matches;
 
-   // Set keypoints type
-   keypointsDetector->setType(features::KeypointDetectorType::AKAZE2);
+       std::vector<SRef<Point2Df>>                         matchedKeypoints1;
+       std::vector<SRef<Point2Df>>                         matchedKeypoints2;
+
+       std::vector<SRef<Point2Df>>                         gmatchedKeypoints1;
+       std::vector<SRef<Point2Df>>                         gmatchedKeypoints2;
+
+       std::vector<SRef<Point2Df>>                         ggmatchedKeypoints1;
+       std::vector<SRef<Point2Df>>                         ggmatchedKeypoints2;
+       std::vector<SRef<CloudPoint>>                       gcloud;
+
+       SRef<Image>                                         viewerImage1;
+       SRef<Image>                                         viewerImage2;
+       SRef<Image>                                         viewerImage3;
+
+       std::vector<DescriptorMatch>                        gmatches;
+       std::vector<DescriptorMatch>                        ggmatches;
+
+       CamCalibration                                      K;
+       CamDistortion                                       dist;
+       Transform2Df                                        F;
+       std::vector<Transform3Df>                           poses;
+
+    // Get first image
+    if (imageLoader1->getImage(image1) != FrameworkReturnCode::_SUCCESS)
+    {
+        LOG_ERROR("Cannot load image 1 with path {}", imageLoader1->bindTo<xpcf::IConfigurable>()->getProperty("pathFile")->getStringValue());
+        return -1;
+    }
+
+    // Get second image
+    if (imageLoader2->getImage(image2) != FrameworkReturnCode::_SUCCESS)
+    {
+        LOG_ERROR("Cannot load image 2 with path {}", imageLoader2->bindTo<xpcf::IConfigurable>()->getProperty("pathFile")->getStringValue());
+        return -1;
+    }
 
    // Detect the keypoints of the first image
    keypointsDetector->detect(image1, keypoints1);
@@ -162,48 +176,30 @@ int run(std::string& firstImagePath, std::string& secondImagePath, std::string& 
    // Compute the matches between the keypoints of the first image and the keypoints of the second image
    matcher->match(descriptors1, descriptors2, matches);
 
-  int vizPoints0 = int(matches.size());
    std::cout<<"->original matches: "<<matches.size()<<std::endl;
 
-   matchedKeypoints1.clear();
-   matchedKeypoints2.clear();
+   keypointsReindexer->reindex(keypoints1, keypoints2, matches, matchedKeypoints1, matchedKeypoints2);
+
+    // Draw the matches in a dedicated image
+    overlay->drawMatchesLines(image1, image2, viewerImage1, matchedKeypoints1, matchedKeypoints2);
 
 
-   for( int i = 0; i < matches.size(); i++ ){
-       matchedKeypoints1.push_back(xpcf::utils::make_shared<Point2Df>(keypoints1[ matches[i].getIndexInDescriptorA()]->getX(),keypoints1[ matches[i].getIndexInDescriptorA()]->getY()));
-       matchedKeypoints2.push_back(xpcf::utils::make_shared<Point2Df>(keypoints2[ matches[i].getIndexInDescriptorB()]->getX(),keypoints2[ matches[i].getIndexInDescriptorB()]->getY()));
-   }
+    matchesFilterBasic->filter(matches,gmatches,keypoints1, keypoints2);
+    std::cout<<"->filtred matches with redanduncy: "<<gmatches.size()<<std::endl;
 
-   // Draw the matches in a dedicated image
-   overlay->drawMatchesLines(image1, image2, viewerImage1, matchedKeypoints1, matchedKeypoints2, vizPoints0);
-   matchesFilterBasic->filter(matches,gmatches,keypoints1, keypoints2);
-   std::cout<<"->filtred matches with redanduncy: "<<gmatches.size()<<std::endl;
+    keypointsReindexer->reindex(keypoints1, keypoints2, gmatches, gmatchedKeypoints1, gmatchedKeypoints2);
 
-    gmatchedKeypoints1.clear();
-    gmatchedKeypoints2.clear();
+    overlay->drawMatchesLines(image1, image2, viewerImage2, gmatchedKeypoints1, gmatchedKeypoints2);
 
-    for( int i = 0; i < gmatches.size(); i++ ){
-       gmatchedKeypoints1.push_back(xpcf::utils::make_shared<Point2Df>(keypoints1[gmatches[i].getIndexInDescriptorA()]->getX(),keypoints1[ gmatches[i].getIndexInDescriptorA()]->getY()));
-       gmatchedKeypoints2.push_back(xpcf::utils::make_shared<Point2Df>(keypoints2[gmatches[i].getIndexInDescriptorB()]->getX(),keypoints2[ gmatches[i].getIndexInDescriptorB()]->getY()));
-    }
-    int vizPoints1 = int(gmatches.size());
-     overlay->drawMatchesLines(image1, image2, viewerImage2, gmatchedKeypoints1, gmatchedKeypoints2,vizPoints1);
 
     matchesFilterGeometric->filter(gmatches,ggmatches,keypoints1, keypoints2);
     std::cout<<"->filtred matches with epipolar constraint: "<<ggmatches.size()<<std::endl;
 
-    ggmatchedKeypoints1.clear();
-    ggmatchedKeypoints2.clear();
+    keypointsReindexer->reindex(keypoints1, keypoints2, ggmatches, ggmatchedKeypoints1, ggmatchedKeypoints2);
 
-    for( int i = 0; i < ggmatches.size(); i++ ){
-       ggmatchedKeypoints1.push_back(xpcf::utils::make_shared<Point2Df>(keypoints1[ggmatches[i].getIndexInDescriptorA()]->getX(),keypoints1[ ggmatches[i].getIndexInDescriptorA()]->getY()));
-       ggmatchedKeypoints2.push_back(xpcf::utils::make_shared<Point2Df>(keypoints2[ggmatches[i].getIndexInDescriptorB()]->getX(),keypoints2[ ggmatches[i].getIndexInDescriptorB()]->getY()));
-    }
-    int vizPoints2 = int(ggmatches.size());
-    overlay->drawMatchesLines(image1, image2, viewerImage3, ggmatchedKeypoints1, ggmatchedKeypoints2,vizPoints2);
+    overlay->drawMatchesLines(image1, image2, viewerImage3, ggmatchedKeypoints1, ggmatchedKeypoints2);
 
    //trying to estimate fundamental matrix;
-
     fundamentalFinder->find(ggmatchedKeypoints1, ggmatchedKeypoints2,F);
     std::cout<<"->F: "<<std::endl;
     for(int ii = 0; ii < 3; ++ii){
@@ -282,9 +278,9 @@ int run(std::string& firstImagePath, std::string& secondImagePath, std::string& 
    bool process = true;
    while (process){
        if (
-            viewer->display("original matches", viewerImage1, &escape_key,1280,480) == FrameworkReturnCode::_STOP ||
-            viewer->display("filtred matches (redanduncy)", viewerImage2, &escape_key,1280,480) == FrameworkReturnCode::_STOP ||
-            viewer->display("filtred matches (epipolar)", viewerImage3, &escape_key,1280,480) == FrameworkReturnCode::_STOP )
+            viewerOriginalMatches->display(viewerImage1) == FrameworkReturnCode::_STOP ||
+            viewerRedanduncyFilterMatches->display(viewerImage2) == FrameworkReturnCode::_STOP ||
+            viewerEpipolarFilterMatches->display(viewerImage3) == FrameworkReturnCode::_STOP )
        {
            process = false;
            LOG_INFO("End of SolARSVDTriangulation sample");
@@ -292,32 +288,6 @@ int run(std::string& firstImagePath, std::string& secondImagePath, std::string& 
    }
 
    return 0;
-}
-
-int printHelp(){
-        printf(" usage :\n");
-        printf(" exe firstImagePath secondImagePath camaraParameters\n");
-        return 1;
-}
-
-int main(int argc, char **argv){
-
-#if NDEBUG
-    boost::log::core::get()->set_logging_enabled(false);
-#endif
-
-	if (argc == 4) {
-		std::string firstImagePath = std::string(argv[1]);
-		std::string secondImagePath = std::string(argv[2]);
-		std::string camaraParameters = std::string(argv[3]);
-
-		run(firstImagePath, secondImagePath, camaraParameters);
-
-		return 1;
-	}
-	else
-		return(printHelp());
-
 }
 
 
