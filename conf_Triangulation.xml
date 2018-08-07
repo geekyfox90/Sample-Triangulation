@@ -58,6 +58,13 @@
                 <interface uuid="920e64a2-df17-11e7-80c1-9a214cf093ae" description="IKeypointsReIndexer"/>
         </component>		
     </module>
+	
+	 <module uuid="6e960df6-9a36-11e8-9eb6-529269fb1459" name="SolARModuleOpenGL" path="$BCOMDEVROOT/bcomBuild/SolARModuleOpenGL/0.4.0/lib/x86_64/shared">
+        <component uuid="afd38ea0-9a46-11e8-9eb6-529269fb1459" description="SolAR3DPointsViewerOpengl">
+                <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect"/>
+                <interface uuid="575d365a-9a27-11e8-9eb6-529269fb1459" description="I3DPointsViewer"/>
+        </component>
+    </module> 
     
 	<configuration>
 		<component uuid="5B7396F4-A804-4F3C-A0EB-FB1D56042BB4"> <!-- SolARCameraOpencv -->
@@ -96,22 +103,37 @@
 			</property>
 			<property name="maxMatches" type="UnsignedInteger" value="-1"/>	
         </component>	
-		<component uuid="2db01f59-9793-4cd5-8e13-b25d0ed5735b"> <!-- SolAR3DOverlayBoxOpencv -->
-            <property name="position"  type="Float">
+		<component uuid="afd38ea0-9a46-11e8-9eb6-529269fb1459"> <!-- SolAR3DPointsViewerOpengl -->
+            <property name="title" type="string" value="Points Cloud"/>
+			<property name="width" type="UnsignedInteger" value="640"/>
+			<property name="height" type="UnsignedInteger" value="480"/>
+			<property name="backgroundColor" type="UnsignedInteger">
+				<value>255</value>
+				<value>255</value>
+				<value>255</value>
+			</property>
+			<property name="pointsColor" type="UnsignedInteger">
 				<value>0</value>
-				<value>0</value>
+				<value>255</value>
 				<value>0</value>
 			</property>
-			<property name="orientation"  type="Float">
+			<property name="cameraColor" type="UnsignedInteger">
+				<value>0</value>
+				<value>0</value>
+				<value>255</value>
+			</property>
+			<property name="cameraScale" type="Float" value="1.0"/>
+			<property name="position" type="Float">
+				<value>0.0</value>
+				<value>0.0</value>
+				<value>5.0</value>
+			</property>
+			<property name="orientation" type="Float">
 				<value>0.0</value>
 				<value>0.0</value>
 				<value>0.0</value>
 			</property>
-			<property name="size"  type="Float">
-				<value>0.285</value>
-				<value>0.197</value>
-				<value>0.1</value>
-			</property>
+			<property name="exitKey" type="Integer" value="27"/>
         </component>
 
 		<component uuid="19ea4e13-7085-4e3f-92ca-93f200ffb01b" name="originalMatches"> <!-- SolARImageViewerOpencv -->

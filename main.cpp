@@ -23,8 +23,8 @@
 // ADD COMPONENTS HEADERS HERE
 
 #include "SolARModuleOpencv_traits.h"
-
 #include "SolARModuleTools_traits.h"
+#include "SolARModuleOpengl_traits.h"
 
 #include "xpcf/xpcf.h"
 
@@ -34,6 +34,7 @@
 #include "api/features/IDescriptorsExtractor.h"
 #include "api/features/IDescriptorMatcher.h"
 #include "api/display/IImageViewer.h"
+#include "api/display/I3DPointsViewer.h"
 #include "api/display/ISideBySideOverlay.h"
 #include "api/features/IMatchesFilter.h"
 #include "api/features/IKeypointsReIndexer.h"
@@ -45,6 +46,7 @@ using namespace SolAR;
 using namespace SolAR::datastructure;
 using namespace SolAR::api;
 using namespace SolAR::MODULES::OPENCV;
+using namespace SolAR::MODULES::OPENGL;
 using namespace SolAR::MODULES::TOOLS;
 
 namespace xpcf = org::bcom::xpcf;
@@ -112,6 +114,7 @@ int main(int argc, char **argv){
     auto fundamentalFinder =xpcfComponentManager->create<SolARFundamentalMatrixEstimationOpencv>()->bindTo<solver::pose::I2DTransformFinder>();
     auto fundamentalDecomposer =xpcfComponentManager->create<SolARSVDFundamentalMatrixDecomposerOpencv>()->bindTo<solver::pose::I2DTO3DTransformDecomposer>();
     auto mapper =xpcfComponentManager->create<SolARSVDTriangulationOpencv>()->bindTo<solver::map::ITriangulator>();
+    auto viewer3DPoints =xpcfComponentManager->create<SolAR3DPointsViewerOpengl>()->bindTo<display::I3DPointsViewer>();
 
     // declarations
 
@@ -264,6 +267,7 @@ int main(int argc, char **argv){
      std::pair<int, int> working_view = std::make_pair(0, 1);
      mapper->triangulate(ggmatchedKeypoints1,ggmatchedKeypoints2,ggmatches,working_view,pose_canonique,poses[k],K,dist,gcloud);
 
+     viewer3DPoints->display(gcloud, pose_canonique);
 
      std::cout<<"--saving cloud: "<<std::endl;
     std::ofstream log_cloud("solar_cloud" +std::to_string(k)+ ".txt");
