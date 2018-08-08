@@ -81,7 +81,7 @@
 		<component uuid="e81c7e4e-7da6-476a-8eba-078b43071272"> <!-- SolARKeypointDetectorOpencv -->
 			<property name="type" type="string" value="AKAZE2"/>
 			<property name="imageRatio" type="Float" value="0.5"/>
-			<property name="nbDescriptors" type="Integer" value="1000"/>
+			<property name="nbDescriptors" type="Integer" value="-1"/>
         </component>
 		<component uuid="21238c00-26dd-11e8-b467-0ed5f89f718b"> <!-- SolARDescriptorsExtractorAKAZE2Opencv -->
             <property name="threshold" type="Float" value="3e-4"/>
@@ -105,12 +105,12 @@
         </component>	
 		<component uuid="afd38ea0-9a46-11e8-9eb6-529269fb1459"> <!-- SolAR3DPointsViewerOpengl -->
             <property name="title" type="string" value="Points Cloud"/>
-			<property name="width" type="UnsignedInteger" value="640"/>
-			<property name="height" type="UnsignedInteger" value="480"/>
+			<property name="width" type="UnsignedInteger" value="1280"/>
+			<property name="height" type="UnsignedInteger" value="960"/>
 			<property name="backgroundColor" type="UnsignedInteger">
-				<value>255</value>
-				<value>255</value>
-				<value>255</value>
+				<value>0</value>
+				<value>0</value>
+				<value>0</value>
 			</property>
 			<property name="pointsColor" type="UnsignedInteger">
 				<value>0</value>
@@ -118,20 +118,17 @@
 				<value>0</value>
 			</property>
 			<property name="cameraColor" type="UnsignedInteger">
-				<value>0</value>
-				<value>0</value>
+				<value>255</value>
+				<value>255</value>
 				<value>255</value>
 			</property>
-			<property name="cameraScale" type="Float" value="1.0"/>
+			<property name="pointSize" type="Float" value="20.0"/>
+			<property name="cameraScale" type="Float" value="5.0"/>
+			<property name="zoomSensitivity" type="Float" value="10.0"/>
 			<property name="position" type="Float">
 				<value>0.0</value>
 				<value>0.0</value>
 				<value>5.0</value>
-			</property>
-			<property name="orientation" type="Float">
-				<value>0.0</value>
-				<value>0.0</value>
-				<value>0.0</value>
 			</property>
 			<property name="exitKey" type="Integer" value="27"/>
         </component>

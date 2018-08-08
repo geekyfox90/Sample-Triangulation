@@ -266,28 +266,18 @@ int main(int argc, char **argv){
      std::cout<<std::endl<<std::endl;
      std::pair<int, int> working_view = std::make_pair(0, 1);
      mapper->triangulate(ggmatchedKeypoints1,ggmatchedKeypoints2,ggmatches,working_view,pose_canonique,poses[k],K,dist,gcloud);
-
-     viewer3DPoints->display(gcloud, pose_canonique);
-
-     std::cout<<"--saving cloud: "<<std::endl;
-    std::ofstream log_cloud("solar_cloud" +std::to_string(k)+ ".txt");
-    log_cloud<<gcloud.size()<<std::endl;
-     for(int kk = 0; kk < gcloud.size(); ++kk){
-            log_cloud<<gcloud[kk]->getX()<<" "<<gcloud[kk]->getY()<<" "<<gcloud[kk]->getZ()<<std::endl;
-     }
-     log_cloud.close();
-     gcloud.clear();
     }
 
    bool process = true;
    while (process){
        if (
+            viewer3DPoints->display(gcloud, pose_canonique) == FrameworkReturnCode::_STOP ||
             viewerOriginalMatches->display(viewerImage1) == FrameworkReturnCode::_STOP ||
             viewerRedanduncyFilterMatches->display(viewerImage2) == FrameworkReturnCode::_STOP ||
             viewerEpipolarFilterMatches->display(viewerImage3) == FrameworkReturnCode::_STOP )
        {
            process = false;
-           LOG_INFO("End of SolARSVDTriangulation sample");
+           LOG_INFO("End of Triangulation sample");
        }
    }
 
