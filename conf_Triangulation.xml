@@ -122,8 +122,8 @@
 				<value>255</value>
 				<value>255</value>
 			</property>
-			<property name="pointSize" type="Float" value="20.0"/>
-			<property name="cameraScale" type="Float" value="5.0"/>
+			<property name="pointSize" type="Float" value="3.0"/>
+			<property name="cameraScale" type="Float" value="3.0"/>
 			<property name="zoomSensitivity" type="Float" value="10.0"/>
 			<property name="position" type="Float">
 				<value>0.0</value>
