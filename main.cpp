@@ -51,30 +51,6 @@ using namespace SolAR::MODULES::TOOLS;
 
 namespace xpcf = org::bcom::xpcf;
 
-
-void fillPoseCanonique(Transform3Df &pcano){
-
-    pcano(0,0) = 1.0;
-    pcano(0,1) = 0.0;
-    pcano(0,2) = 0.0;
-    pcano(0,3) = 0.0;
-
-    pcano(1,0) = 0.0;
-    pcano(1,1) = 1.0;
-    pcano(1,2) = 0.0;
-    pcano(1,3) = 0.0;
-
-    pcano(2,0) = 0.0;
-    pcano(2,1) = 0.0;
-    pcano(2,2) = 1.0;
-    pcano(2,3) = 0.0;
-
-    pcano(3,0) = 0.0;
-    pcano(3,1) = 0.0;
-    pcano(3,2) = 0.0;
-    pcano(3,3) = 1.0;
-}
-
 int main(int argc, char **argv){
 
 #if NDEBUG
@@ -242,8 +218,8 @@ int main(int argc, char **argv){
     std::cout<<"-Triangulate: "<<std::endl;
 
 
-   Transform3Df pose_canonique ; //= sptrnms::make_shared<Pose>();
-   fillPoseCanonique(pose_canonique);
+   Transform3Df pose_canonique; //= sptrnms::make_shared<Pose>();
+   pose_canonique.setIdentity();
 
     for( int k = 0; k < poses.size(); ++k){
      std::cout<<"    - with pose: "<<k<<std::endl;
