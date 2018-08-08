@@ -140,124 +140,70 @@ int main(int argc, char **argv){
         return -1;
     }
 
-   // Detect the keypoints of the first image
-   keypointsDetector->detect(image1, keypoints1);
+    // Detect the keypoints of the first image
+    keypointsDetector->detect(image1, keypoints1);
 
-   // Detect the keypoints of the second image
-   keypointsDetector->detect(image2, keypoints2);
+    // Detect the keypoints of the second image
+    keypointsDetector->detect(image2, keypoints2);
 
-   // Compute the  descriptor for each keypoint extracted from the first image
-   descriptorExtractor->extract(image1, keypoints1, descriptors1);
+    // Compute the  descriptor for each keypoint extracted from the first image
+    descriptorExtractor->extract(image1, keypoints1, descriptors1);
 
-   // Compute the  descriptor for each keypoint extracted from the second image
-   descriptorExtractor->extract(image2, keypoints2, descriptors2);
+    // Compute the  descriptor for each keypoint extracted from the second image
+    descriptorExtractor->extract(image2, keypoints2, descriptors2);
 
-   // Compute the matches between the keypoints of the first image and the keypoints of the second image
-   matcher->match(descriptors1, descriptors2, matches);
+    // Compute the matches between the keypoints of the first image and the keypoints of the second image
+    matcher->match(descriptors1, descriptors2, matches);
+    LOG_DEBUG("->original matches: {}",matches.size());
 
-   std::cout<<"->original matches: "<<matches.size()<<std::endl;
-
-   keypointsReindexer->reindex(keypoints1, keypoints2, matches, matchedKeypoints1, matchedKeypoints2);
-
-    // Draw the matches in a dedicated image
+    keypointsReindexer->reindex(keypoints1, keypoints2, matches, matchedKeypoints1, matchedKeypoints2);
     overlay->drawMatchesLines(image1, image2, viewerImage1, matchedKeypoints1, matchedKeypoints2);
 
-
     matchesFilterBasic->filter(matches,gmatches,keypoints1, keypoints2);
-    std::cout<<"->filtred matches with redanduncy: "<<gmatches.size()<<std::endl;
+    LOG_DEBUG("->filtred matches with redanduncy: {}", gmatches.size());
 
     keypointsReindexer->reindex(keypoints1, keypoints2, gmatches, gmatchedKeypoints1, gmatchedKeypoints2);
-
     overlay->drawMatchesLines(image1, image2, viewerImage2, gmatchedKeypoints1, gmatchedKeypoints2);
 
-
     matchesFilterGeometric->filter(gmatches,ggmatches,keypoints1, keypoints2);
-    std::cout<<"->filtred matches with epipolar constraint: "<<ggmatches.size()<<std::endl;
+    LOG_DEBUG("filtred matches with epipolar constraint: {}", ggmatches.size());
 
     keypointsReindexer->reindex(keypoints1, keypoints2, ggmatches, ggmatchedKeypoints1, ggmatchedKeypoints2);
-
     overlay->drawMatchesLines(image1, image2, viewerImage3, ggmatchedKeypoints1, ggmatchedKeypoints2);
 
-   //trying to estimate fundamental matrix;
+   //Try to estimate fundamental matrix;
     fundamentalFinder->find(ggmatchedKeypoints1, ggmatchedKeypoints2,F);
-    std::cout<<"->F: "<<std::endl;
-    for(int ii = 0; ii < 3; ++ii){
-        for(int jj = 0; jj < 3; ++jj){
-            std::cout<<F(ii,jj)<<" ";
-        }
-        std::cout<<std::endl;
-    }
-
+    LOG_DEBUG("->F:\n {}", F.matrix());
  
 	K = camera->getIntrinsicsParameters();
 	dist = camera->getDistorsionParameters();
 
-    std::cout<<"->K: "<<std::endl;
-    for(int ii = 0; ii < 3; ++ii){
-        for(int jj = 0; jj < 3; ++jj){
-            std::cout<<K(ii,jj)<<" ";
-        }
-        std::cout<<std::endl;
-    }
     fundamentalDecomposer->decompose(F,K,dist,poses);
+    LOG_DEBUG("Poses size: {}", poses.size());
+    for(int k = 0; k <poses.size(); ++k)
+        LOG_DEBUG("--pose {} :\n {}", k, poses[k].matrix());
 
-    std::cout<<" Poses size: "<<poses.size()<<std::endl;
-
-#
-    for(int k = 0; k <poses.size(); ++k){
-        std::cout<<"--pose: "<<k<<std::endl;
-        for(int ii = 0; ii < 4; ++ii){
-            for(int jj = 0; jj < 4; ++jj){
-                std::cout<<poses[k](ii,jj)<<" ";
-            }
-            std::cout<<std::endl;
-        }
-        std::cout<<std::endl<<std::endl;
-    }
-
-    std::cout<<"-Triangulate: "<<std::endl;
-
-
-   Transform3Df pose_canonique; //= sptrnms::make_shared<Pose>();
-   pose_canonique.setIdentity();
-
+    // Triangulate
+    LOG_INFO("Start Triangulation");
+    Transform3Df pose_canonique = Transform3Df::Identity();
     for( int k = 0; k < poses.size(); ++k){
-     std::cout<<"    - with pose: "<<k<<std::endl;
-
-     for(int ii = 0; ii < 4; ++ii){
-         for(int jj = 0; jj < 4; ++jj){
-            std::cout<<poses[k](ii,jj)<<" ";
-         }
-         std::cout<<std::endl;
-      }
-      std::cout<<std::endl<<std::endl;
-      std::cout<<"    - and canonique"<<std::endl;
-
-     for(int ii = 0; ii < 4; ++ii){
-         for(int jj = 0; jj < 4; ++jj){
-             std::cout<<pose_canonique(ii,jj)<<" ";
-          }
-          std::cout<<std::endl;
-      }
-     std::cout<<std::endl<<std::endl;
-     std::pair<int, int> working_view = std::make_pair(0, 1);
-     mapper->triangulate(ggmatchedKeypoints1,ggmatchedKeypoints2,ggmatches,working_view,pose_canonique,poses[k],K,dist,gcloud);
+        std::pair<int, int> working_view = std::make_pair(0, 1);
+        mapper->triangulate(ggmatchedKeypoints1,ggmatchedKeypoints2,ggmatches,working_view,pose_canonique,poses[k],K,dist,gcloud);
     }
 
-   bool process = true;
-   while (process){
-       if (
+    bool process = true;
+    while (process){
+        if (
             viewer3DPoints->display(gcloud, pose_canonique) == FrameworkReturnCode::_STOP ||
             viewerOriginalMatches->display(viewerImage1) == FrameworkReturnCode::_STOP ||
             viewerRedanduncyFilterMatches->display(viewerImage2) == FrameworkReturnCode::_STOP ||
             viewerEpipolarFilterMatches->display(viewerImage3) == FrameworkReturnCode::_STOP )
-       {
+        {
            process = false;
            LOG_INFO("End of Triangulation sample");
-       }
-   }
-
-   return 0;
+        }
+    }
+    return 0;
 }
 
 
