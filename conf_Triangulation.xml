@@ -40,13 +40,6 @@
         </component>
     </module>
 	
-	<module uuid="28b89d39-41bd-451d-b19e-d25a3d7c5797" name="SolARModuleTools"  path="$BCOMDEVROOT/bcomBuild/SolARModuleTools/0.4.0/lib/x86_64/shared">
-        <component uuid="c2836cc0-0344-4956-8959-84936fb4bcf2" description="SolARKeypointsReIndexer">
-                <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect"/>
-                <interface uuid="920e64a2-df17-11e7-80c1-9a214cf093ae" description="IKeypointsReIndexer"/>
-        </component>		
-    </module>
-	
 	 <module uuid="6e960df6-9a36-11e8-9eb6-529269fb1459" name="SolARModuleOpenGL" path="$BCOMDEVROOT/bcomBuild/SolARModuleOpenGL/0.4.0/lib/x86_64/shared">
         <component uuid="afd38ea0-9a46-11e8-9eb6-529269fb1459" description="SolAR3DPointsViewerOpengl">
                 <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect"/>
@@ -65,7 +58,6 @@
 		<component uuid="e42d6526-9eb1-4f8a-bb68-53e06f09609c" name="image2"> <!-- SolARImageLoaderOpencv -->
 			<property name="filePath" type="string" value="image2.png"/>
 		</component>
-		
 		<component uuid="e81c7e4e-7da6-476a-8eba-078b43071272"> <!-- SolARKeypointDetectorOpencv -->
 			<property name="type" type="string" value="AKAZE2"/>
 			<property name="imageRatio" type="Float" value="0.5"/>
@@ -124,11 +116,6 @@
 			<property name="pointSize" type="Float" value="3.0"/>
 			<property name="cameraScale" type="Float" value="1.0"/>
 			<property name="zoomSensitivity" type="Float" value="10.0"/>
-			<property name="position" type="Float">
-				<value>0.0</value>
-				<value>0.0</value>
-				<value>5.0</value>
-			</property>
 			<property name="exitKey" type="Integer" value="27"/>
         </component>
     </configuration>

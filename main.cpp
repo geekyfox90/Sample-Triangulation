@@ -23,7 +23,6 @@
 // ADD COMPONENTS HEADERS HERE
 
 #include "SolARModuleOpencv_traits.h"
-#include "SolARModuleTools_traits.h"
 #include "SolARModuleOpengl_traits.h"
 
 #include "xpcf/xpcf.h"
@@ -34,7 +33,6 @@
 #include "api/features/IDescriptorsExtractor.h"
 #include "api/features/IDescriptorMatcher.h"
 #include "api/features/IMatchesFilter.h"
-#include "api/features/IKeypointsReIndexer.h"
 #include "api/solver/pose/I3DTransformFinderFrom2D2D.h"
 #include "api/solver/map/ITriangulator.h"
 #include "api/display/ISideBySideOverlay.h"
@@ -46,7 +44,6 @@ using namespace SolAR::datastructure;
 using namespace SolAR::api;
 using namespace SolAR::MODULES::OPENCV;
 using namespace SolAR::MODULES::OPENGL;
-using namespace SolAR::MODULES::TOOLS;
 
 namespace xpcf = org::bcom::xpcf;
 
@@ -80,7 +77,6 @@ int main(int argc, char **argv){
     auto matcher =xpcfComponentManager->create<SolARDescriptorMatcherKNNOpencv>()->bindTo<features::IDescriptorMatcher>();
     auto overlayMatches =xpcfComponentManager->create<SolARSideBySideOverlayOpencv>()->bindTo<display::ISideBySideOverlay>();
     auto viewerMatches =xpcfComponentManager->create<SolARImageViewerOpencv>()->bindTo<display::IImageViewer>();
-    auto keypointsReindexer = xpcfComponentManager->create<SolARKeypointsReIndexer>()->bindTo<features::IKeypointsReIndexer>();
     auto poseFinderFrom2D2D =xpcfComponentManager->create<SolARPoseFinderFrom2D2DOpencv>()->bindTo<solver::pose::I3DTransformFinderFrom2D2D>();
     auto mapper =xpcfComponentManager->create<SolARSVDTriangulationOpencv>()->bindTo<solver::map::ITriangulator>();
     auto viewer3DPoints =xpcfComponentManager->create<SolAR3DPointsViewerOpengl>()->bindTo<display::I3DPointsViewer>();
@@ -96,18 +92,12 @@ int main(int argc, char **argv){
     SRef<DescriptorBuffer>                              descriptors2;
     std::vector<DescriptorMatch>                        matches;
 
-    std::vector<SRef<Point2Df>>                         matchedKeypoints1;
-    std::vector<SRef<Point2Df>>                         matchedKeypoints2;
-    std::vector<SRef<Point2Df>>                         inliersView1;
-    std::vector<SRef<Point2Df>>                         inliersView2;
-
     std::vector<SRef<CloudPoint>>                       cloud;
 
     SRef<Image>                                         matchesImage;
 
     Transform3Df                                        poseFrame1 = Transform3Df::Identity();
     Transform3Df                                        poseFrame2;
-
 
     // initialize components requiring the camera intrinsic parameters (please refeer to the use of intrinsic parameters file)
     poseFinderFrom2D2D->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistorsionParameters());
@@ -141,16 +131,18 @@ int main(int argc, char **argv){
 
     // Compute the matches between the keypoints of the first image and the keypoints of the second image
     matcher->match(descriptors1, descriptors2, matches);
-    keypointsReindexer->reindex(keypoints1, keypoints2, matches, matchedKeypoints1, matchedKeypoints2);
+    int nbMatches = matches.size();
 
     // Estimate the pose of the second frame (the first frame being the reference of our coordinate system)
-    poseFinderFrom2D2D->estimate(matchedKeypoints1, matchedKeypoints2, poseFrame1, poseFrame2, inliersView1, inliersView2);
-    LOG_INFO("Number of matches used for triangulation {}//{}", inliersView1.size(), matchedKeypoints1.size());
+    poseFinderFrom2D2D->estimate(keypoints1, keypoints2, poseFrame1, poseFrame2, matches);
+    LOG_INFO("Number of matches used for triangulation {}//{}", matches.size(), nbMatches);
     LOG_INFO("Estimated pose of the camera for the frame 2: \n {}", poseFrame2.matrix());
 
     // Create a image showing the matches used for pose estimation of the second camera
-    overlayMatches->drawMatchesLines(image1, image2, matchesImage, inliersView1, inliersView2);
-    double reproj_error = mapper->triangulate(inliersView1,inliersView2,matches,std::make_pair(0, 1),poseFrame1,poseFrame2,cloud);
+    overlayMatches->drawMatchesLines(image1, image2, matchesImage, keypoints1, keypoints2, matches);
+
+    // Triangulate the inliers keypoints which match
+    double reproj_error = mapper->triangulate(keypoints1,keypoints2,matches,std::make_pair(0, 1),poseFrame1,poseFrame2,cloud);
     LOG_INFO("Reprojection error: {}", reproj_error);
 
     // Display the matches and the 3D point cloud
