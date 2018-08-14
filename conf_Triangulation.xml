@@ -22,6 +22,14 @@
                 <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect"/>
                 <interface uuid="dda38a40-c50a-4e7d-8433-0f04c7c98518" description="IDescriptorMatcher"/>
         </component>
+		<component uuid="52babb5e-9d33-11e8-98d0-529269fb1459" description="SolARPoseFinderFrom2D2DOpencv">
+                <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect"/>
+                <interface uuid="6063a606-9d30-11e8-98d0-529269fb1459" description="I3DTransformFinderFrom2D2D"/>
+        </component>
+		<component uuid="85274ecd-2914-4f12-96de-37c6040633a4" description="SolARSVDTriangulationOpencv">
+                <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect"/>
+                <interface uuid="3a01b0e9-9a76-43f5-97b3-85bb6979b953" description="ITriangulator"/>
+        </component>
 		<component uuid="e95302be-3fe1-44e0-97bf-a98380464af9" description="SolARSideBySideOverlayOpencv">
                 <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect"/>
                 <interface uuid="a801354a-3e00-467c-b390-48c76fa8c53a" description="ISideBySideOverlay"/>
@@ -30,30 +38,10 @@
                 <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect"/>
                 <interface uuid="b05f3dbb-f93d-465c-aee1-fb58e1480c42" description="IImageViewer"/>
         </component>
-		<component uuid="3731691e-2c4c-4d37-a2ce-06d1918f8d41" description="SolARGeometricMatchesFilterOpencv">
-                <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect"/>
-                <interface uuid="e0d6cc82-6af2-493d-901a-2384fca0b16f" description="IMatchesFilter"/>
-        </component>
-		<component uuid="79b29b50-cf4d-441e-b5de-1de829b91c41" description="SolARFundamentalMatrixEstimationOpencv">
-                <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect"/>
-                <interface uuid="45dd370a-0eab-4a7f-93d0-43453b4c7517" description="I2DTransformFinder"/>
-        </component>
-		<component uuid="31188e79-6bd5-43df-9633-6d6c5d7afb5c" description="SolARSVDFundamentalMatrixDecomposerOpencv">
-                <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect"/>
-                <interface uuid="1697e697-e6df-4e6a-b8e7-d78ddc03f3f6" description="IFundamentalMatrixDecomposer"/>
-        </component>
-		<component uuid="85274ecd-2914-4f12-96de-37c6040633a4" description="SolARSVDTriangulationOpencv">
-                <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect"/>
-                <interface uuid="3a01b0e9-9a76-43f5-97b3-85bb6979b953" description="ITriangulator"/>
-        </component>
     </module>
 	
 	<module uuid="28b89d39-41bd-451d-b19e-d25a3d7c5797" name="SolARModuleTools"  path="$BCOMDEVROOT/bcomBuild/SolARModuleTools/0.4.0/lib/x86_64/shared">
-        <component uuid="cbb620c3-a7fc-42d7-bcbf-f59b475b23b0" description="SolARBasicMatchesFilter">
-                <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect"/>
-                <interface uuid="e0d6cc82-6af2-493d-901a-2384fca0b16f" description="IMatchesFilter"/>
-        </component>
-		<component uuid="c2836cc0-0344-4956-8959-84936fb4bcf2" description="SolARKeypointsReIndexer">
+        <component uuid="c2836cc0-0344-4956-8959-84936fb4bcf2" description="SolARKeypointsReIndexer">
                 <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect"/>
                 <interface uuid="920e64a2-df17-11e7-80c1-9a214cf093ae" description="IKeypointsReIndexer"/>
         </component>		
@@ -89,10 +77,10 @@
 		<component uuid="7823dac8-1597-41cf-bdef-59aa22f3d40a"> <!-- SolARDescriptorMatcherKNNOpencv -->
 			<property name="distanceRatio" type="Float" value="0.75"/>
 		</component>
-		<component uuid="3731691e-2c4c-4d37-a2ce-06d1918f8d41"> <!-- SolARGeometricMatchesFilterOpencv -->
-            <property name="m_confidenceLevel" type="Double" value="0.99"/>
-			<property name="m_outlierDistanceRatio" type="Double" value="0.006"/>
-        </component>
+		<component uuid="52babb5e-9d33-11e8-98d0-529269fb1459"> <!-- SolARPoseFinderFrom2D2DOpencv -->
+			<property name="confidence" type="Float" value="0.99"/>
+			<property name="outlierDistanceRatio" type="Float" value="0.0005"/>
+		</component>
 		<component uuid="e95302be-3fe1-44e0-97bf-a98380464af9"> <!-- SolARSideBySideOverlayOpencv -->
             <property name="thickness" type="UnsignedInteger" value="3"/>
 			<property name="randomColor" type="UnsignedInteger" value="1"/>
@@ -103,6 +91,12 @@
 			</property>
 			<property name="maxMatches" type="UnsignedInteger" value="-1"/>	
         </component>	
+		<component uuid="19ea4e13-7085-4e3f-92ca-93f200ffb01b"> <!-- SolARImageViewerOpencv -->
+			<property name="title" type="string" value=""/>
+			<property name="exitKey" type="Integer" value="27"/>
+			<property name="width" type="Integer" value="1280"/>
+			<property name="height" type="Integer" value="480"/>
+		</component>
 		<component uuid="afd38ea0-9a46-11e8-9eb6-529269fb1459"> <!-- SolAR3DPointsViewerOpengl -->
             <property name="title" type="string" value="Points Cloud"/>
 			<property name="width" type="UnsignedInteger" value="1280"/>
@@ -112,6 +106,7 @@
 				<value>0</value>
 				<value>0</value>
 			</property>
+			<property name="fixedPointsColor" type="UnsignedInteger" value="1"/>
 			<property name="pointsColor" type="UnsignedInteger">
 				<value>0</value>
 				<value>255</value>
@@ -122,8 +117,12 @@
 				<value>255</value>
 				<value>255</value>
 			</property>
+			<property name="drawCameraAxis" type="UnsignedInteger" value="1"/>
+			<property name="drawSceneAxis" type="UnsignedInteger" value="1"/>
+			<property name="drawWorldAxis" type="UnsignedInteger" value="1"/>
+			<property name="axisScale" type="Float" value="1.0"/>
 			<property name="pointSize" type="Float" value="3.0"/>
-			<property name="cameraScale" type="Float" value="3.0"/>
+			<property name="cameraScale" type="Float" value="1.0"/>
 			<property name="zoomSensitivity" type="Float" value="10.0"/>
 			<property name="position" type="Float">
 				<value>0.0</value>
@@ -132,24 +131,5 @@
 			</property>
 			<property name="exitKey" type="Integer" value="27"/>
         </component>
-
-		<component uuid="19ea4e13-7085-4e3f-92ca-93f200ffb01b" name="originalMatches"> <!-- SolARImageViewerOpencv -->
-			<property name="title" type="string" value="original matches"/>
-			<property name="exitKey" type="Integer" value="27"/>
-			<property name="width" type="Integer" value="1280"/>
-			<property name="height" type="Integer" value="480"/>
-		</component>
-		<component uuid="19ea4e13-7085-4e3f-92ca-93f200ffb01b" name="redanduncyFilterMatches"> <!-- SolARImageViewerOpencv -->
-			<property name="title" type="string" value="filtred matches (redanduncy)"/>
-			<property name="exitKey" type="Integer" value="27"/>
-			<property name="width" type="Integer" value="1280"/>
-			<property name="height" type="Integer" value="480"/>
-		</component>
-		<component uuid="19ea4e13-7085-4e3f-92ca-93f200ffb01b" name="epipolarFilterMatches"> <!-- SolARImageViewerOpencv -->
-			<property name="title" type="string" value="filtred matches (epipolar)"/>
-			<property name="exitKey" type="Integer" value="27"/>
-			<property name="width" type="Integer" value="1280"/>
-			<property name="height" type="Integer" value="480"/>
-		</component>		
     </configuration>
 </xpcf-registry>
