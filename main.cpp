@@ -148,7 +148,7 @@ int main(int argc, char **argv){
     // Display the matches and the 3D point cloud
     while (true){
         if (
-            viewer3DPoints->display(cloud, poseFrame2) == FrameworkReturnCode::_STOP ||
+            viewer3DPoints->display(cloud, poseFrame2, std::vector<Transform3Df>(), std::vector<Transform3Df>()) == FrameworkReturnCode::_STOP ||
             viewerMatches->display(matchesImage) == FrameworkReturnCode::_STOP  )
         {
            LOG_INFO("End of Triangulation sample");
