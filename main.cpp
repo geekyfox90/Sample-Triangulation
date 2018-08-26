@@ -131,7 +131,7 @@ int main(int argc, char **argv){
 
     // Compute the matches between the keypoints of the first image and the keypoints of the second image
     matcher->match(descriptors1, descriptors2, matches);
-    int nbMatches = matches.size();
+    int nbMatches = (int)matches.size();
 
     // Estimate the pose of the second frame (the first frame being the reference of our coordinate system)
     poseFinderFrom2D2D->estimate(keypoints1, keypoints2, poseFrame1, poseFrame2, matches);
@@ -148,7 +148,7 @@ int main(int argc, char **argv){
     // Display the matches and the 3D point cloud
     while (true){
         if (
-            viewer3DPoints->display(cloud, poseFrame2, std::vector<Transform3Df>(), std::vector<Transform3Df>()) == FrameworkReturnCode::_STOP ||
+            viewer3DPoints->display(cloud, poseFrame2) == FrameworkReturnCode::_STOP ||
             viewerMatches->display(matchesImage) == FrameworkReturnCode::_STOP  )
         {
            LOG_INFO("End of Triangulation sample");
