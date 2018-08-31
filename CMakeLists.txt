@@ -45,10 +45,18 @@ set(FILES_TO_COPY
 	$ENV{BCOMDEVROOT}/thirdParties/boost/1.64.0/lib/x86_64/shared/${BUILDCONFIG}/${LIBPREFIX}boost_thread.${LIBEXTENSION}
 	$ENV{BCOMDEVROOT}/thirdParties/boost/1.64.0/lib/x86_64/shared/${BUILDCONFIG}/${LIBPREFIX}boost_date_time.${LIBEXTENSION}
 
+	$ENV{BCOMDEVROOT}/thirdParties/freeglut/3.0.0/lib/x86_64/shared/${BUILDCONFIG}/${LIBPREFIX}glut.${LIBEXTENSION}
+
 	$ENV{BCOMDEVROOT}/bcomBuild/SolARModuleOpenCV/0.4.0/lib/x86_64/shared/${BUILDCONFIG}/${LIBPREFIX}SolARModuleOpenCV.${LIBEXTENSION}
 	$ENV{BCOMDEVROOT}/bcomBuild/SolARFramework/0.4.0/lib/x86_64/shared/${BUILDCONFIG}/${LIBPREFIX}SolARFramework.${LIBEXTENSION}
 	$ENV{BCOMDEVROOT}/bcomBuild/SolARModuleTools/0.4.0/lib/x86_64/shared/${BUILDCONFIG}/${LIBPREFIX}SolARModuleTools.${LIBEXTENSION}
+	$ENV{BCOMDEVROOT}/bcomBuild/SolARModuleOpenGL/0.4.0/lib/x86_64/shared/${BUILDCONFIG}/${LIBPREFIX}SolARModuleOpenGL.${LIBEXTENSION}
+
 	$ENV{BCOMDEVROOT}/thirdParties/xpcf/2.0.0/lib/x86_64/shared/${BUILDCONFIG}/${LIBPREFIX}xpcf.${LIBEXTENSION}
+
+	${CMAKE_CURRENT_SOURCE_DIR}/conf_Triangulation.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/camera_calibration.yml
+
 	)
 # define targets (library, install and uninstall)
 defineTargets("executable" "${FILES_TO_COPY}")

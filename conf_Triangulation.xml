@@ -53,10 +53,10 @@
 			<property name="deviceID" type="UnsignedInteger" value="0"/>
 		</component>
 		<component uuid="e42d6526-9eb1-4f8a-bb68-53e06f09609c" name="image1"> <!-- SolARImageLoaderOpencv -->
-			<property name="filePath" type="string" value="image1.png"/>
+			<property name="filePath" type="string" value="Image1.png"/>
 		</component>
 		<component uuid="e42d6526-9eb1-4f8a-bb68-53e06f09609c" name="image2"> <!-- SolARImageLoaderOpencv -->
-			<property name="filePath" type="string" value="image2.png"/>
+			<property name="filePath" type="string" value="Image2.png"/>
 		</component>
 		<component uuid="e81c7e4e-7da6-476a-8eba-078b43071272"> <!-- SolARKeypointDetectorOpencv -->
 			<property name="type" type="string" value="AKAZE2"/>
