@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#define USE_FREE
 #include <iostream>
 #include <string>
 #include <vector>
@@ -24,6 +25,7 @@
 
 #include "SolARModuleOpencv_traits.h"
 #include "SolARModuleOpengl_traits.h"
+#include "SolARModuleNonFreeOpencv_traits.h"
 
 #include "xpcf/xpcf.h"
 
@@ -43,6 +45,7 @@ using namespace SolAR;
 using namespace SolAR::datastructure;
 using namespace SolAR::api;
 using namespace SolAR::MODULES::OPENCV;
+using namespace SolAR::MODULES::NONFREEOPENCV;
 using namespace SolAR::MODULES::OPENGL;
 
 namespace xpcf = org::bcom::xpcf;
@@ -58,22 +61,45 @@ int main(int argc, char **argv){
     /* instantiate component manager*/
     /* this is needed in dynamic mode */
     SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
-
+#ifdef USE_FREE
     if(xpcfComponentManager->load("conf_Triangulation.xml")!=org::bcom::xpcf::_SUCCESS)
     {
         LOG_ERROR("Failed to load the configuration file conf_Triangulation.xml")
         return -1;
     }
-
+#else
+    if(xpcfComponentManager->load("conf_Triangulation_nf.xml")!=org::bcom::xpcf::_SUCCESS)
+    {
+        LOG_ERROR("Failed to load the configuration file conf_Triangulation_nf.xml")
+        return -1;
+    }
+#endif
     // declare and create components
     LOG_INFO("Start creating components");
 
     // component declaration and creation
     auto camera =xpcfComponentManager->create<SolARCameraOpencv>()->bindTo<input::devices::ICamera>();
+    LOG_INFO("Camera loaded");
     auto imageLoader1 =xpcfComponentManager->create<SolARImageLoaderOpencv>("image1")->bindTo<image::IImageLoader>();
+        LOG_INFO("Image 1 loaded");
     auto imageLoader2 =xpcfComponentManager->create<SolARImageLoaderOpencv>("image2")->bindTo<image::IImageLoader>();
+        LOG_INFO("Image 2 loaded");
+#ifdef USE_FREE
+    LOG_INFO("free keypoint detector");
     auto keypointsDetector =xpcfComponentManager->create<SolARKeypointDetectorOpencv>()->bindTo<features::IKeypointDetector>();
+#else
+    LOG_INFO("nonfree keypoint detector");
+    auto  keypointsDetector = xpcfComponentManager->create<SolARKeypointDetectorNonFreeOpencv>()->bindTo<features::IKeypointDetector>();
+#endif
+
+#ifdef USE_FREE
+    LOG_INFO("free keypoint extractor");
     auto descriptorExtractor =xpcfComponentManager->create<SolARDescriptorsExtractorAKAZE2Opencv>()->bindTo<features::IDescriptorsExtractor>();
+#else
+    LOG_INFO("nonfree keypoint extractor");
+    auto descriptorExtractor = xpcfComponentManager->create<SolARDescriptorsExtractorSURF64Opencv>()->bindTo<features::IDescriptorsExtractor>();
+#endif
+
     auto matcher =xpcfComponentManager->create<SolARDescriptorMatcherKNNOpencv>()->bindTo<features::IDescriptorMatcher>();
     auto overlayMatches =xpcfComponentManager->create<SolARSideBySideOverlayOpencv>()->bindTo<display::ISideBySideOverlay>();
     auto viewerMatches =xpcfComponentManager->create<SolARImageViewerOpencv>()->bindTo<display::IImageViewer>();
@@ -119,25 +145,19 @@ int main(int argc, char **argv){
 
     // Detect the keypoints for the first image
     keypointsDetector->detect(image1, keypoints1);
-
     // Detect the keypoints for the second image
     keypointsDetector->detect(image2, keypoints2);
-
     // Compute the descriptor for each keypoint extracted from the first image
     descriptorExtractor->extract(image1, keypoints1, descriptors1);
-
     // Compute the descriptor for each keypoint extracted from the second image
     descriptorExtractor->extract(image2, keypoints2, descriptors2);
-
     // Compute the matches between the keypoints of the first image and the keypoints of the second image
     matcher->match(descriptors1, descriptors2, matches);
     int nbMatches = (int)matches.size();
-
     // Estimate the pose of the second frame (the first frame being the reference of our coordinate system)
     poseFinderFrom2D2D->estimate(keypoints1, keypoints2, poseFrame1, poseFrame2, matches);
     LOG_INFO("Number of matches used for triangulation {}//{}", matches.size(), nbMatches);
     LOG_INFO("Estimated pose of the camera for the frame 2: \n {}", poseFrame2.matrix());
-
     // Create a image showing the matches used for pose estimation of the second camera
     overlayMatches->drawMatchesLines(image1, image2, matchesImage, keypoints1, keypoints2, matches);
 
