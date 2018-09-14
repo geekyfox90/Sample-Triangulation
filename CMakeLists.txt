@@ -15,7 +15,7 @@ processPackagedependencies()
 # define the list of files to copy to build directory
 if (UNIX)
 	set (LIBPREFIX "lib")
-	set (LIBGLUT "free")
+	set (LIBGLUT "")
 	set (LIBEXTENSION "so")
 	set (OPENCV_VERSION "")
 endif(UNIX)
