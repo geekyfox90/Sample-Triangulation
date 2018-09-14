@@ -60,14 +60,14 @@
 		</component>
 		<component uuid="e81c7e4e-7da6-476a-8eba-078b43071272"> <!-- SolARKeypointDetectorOpencv -->
 			<property name="type" type="string" value="AKAZE2"/>
-			<property name="imageRatio" type="Float" value="0.5"/>
+			<property name="imageRatio" type="Float" value="1.0"/>
 			<property name="nbDescriptors" type="Integer" value="-1"/>
         </component>
 		<component uuid="21238c00-26dd-11e8-b467-0ed5f89f718b"> <!-- SolARDescriptorsExtractorAKAZE2Opencv -->
             <property name="threshold" type="Float" value="3e-4"/>
         </component>
 		<component uuid="7823dac8-1597-41cf-bdef-59aa22f3d40a"> <!-- SolARDescriptorMatcherKNNOpencv -->
-			<property name="distanceRatio" type="Float" value="0.75"/>
+			<property name="distanceRatio" type="Float" value="0.65"/>
 		</component>
 		<component uuid="52babb5e-9d33-11e8-98d0-529269fb1459"> <!-- SolARPoseFinderFrom2D2DOpencv -->
 			<property name="confidence" type="Float" value="0.99"/>
