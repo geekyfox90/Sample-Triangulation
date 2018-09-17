@@ -37,7 +37,7 @@
 #include "api/features/IMatchesFilter.h"
 #include "api/solver/pose/I3DTransformFinderFrom2D2D.h"
 #include "api/solver/map/ITriangulator.h"
-#include "api/display/ISideBySideOverlay.h"
+#include "api/display/IMatchesOverlay.h"
 #include "api/display/IImageViewer.h"
 #include "api/display/I3DPointsViewer.h"
 
@@ -101,7 +101,7 @@ int main(int argc, char **argv){
 #endif
 
     auto matcher =xpcfComponentManager->create<SolARDescriptorMatcherKNNOpencv>()->bindTo<features::IDescriptorMatcher>();
-    auto overlayMatches =xpcfComponentManager->create<SolARSideBySideOverlayOpencv>()->bindTo<display::ISideBySideOverlay>();
+    auto overlayMatches =xpcfComponentManager->create<SolARMatchesOverlayOpencv>()->bindTo<display::IMatchesOverlay>();
     auto viewerMatches =xpcfComponentManager->create<SolARImageViewerOpencv>()->bindTo<display::IImageViewer>();
     auto poseFinderFrom2D2D =xpcfComponentManager->create<SolARPoseFinderFrom2D2DOpencv>()->bindTo<solver::pose::I3DTransformFinderFrom2D2D>();
     auto mapper =xpcfComponentManager->create<SolARSVDTriangulationOpencv>()->bindTo<solver::map::ITriangulator>();
@@ -159,7 +159,7 @@ int main(int argc, char **argv){
     LOG_INFO("Number of matches used for triangulation {}//{}", matches.size(), nbMatches);
     LOG_INFO("Estimated pose of the camera for the frame 2: \n {}", poseFrame2.matrix());
     // Create a image showing the matches used for pose estimation of the second camera
-    overlayMatches->drawMatchesLines(image1, image2, matchesImage, keypoints1, keypoints2, matches);
+    overlayMatches->draw(image1, image2, matchesImage, keypoints1, keypoints2, matches);
 
     // Triangulate the inliers keypoints which match
     double reproj_error = mapper->triangulate(keypoints1,keypoints2,matches,std::make_pair(0, 1),poseFrame1,poseFrame2,cloud);
