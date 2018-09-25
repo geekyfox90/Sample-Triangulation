@@ -25,6 +25,8 @@
 
 #include "SolARModuleOpencv_traits.h"
 #include "SolARModuleOpengl_traits.h"
+#include "SolARModuleTools_traits.h"
+
 #include "SolARModuleNonFreeOpencv_traits.h"
 
 #include "xpcf/xpcf.h"
@@ -46,6 +48,7 @@ using namespace SolAR;
 using namespace SolAR::datastructure;
 using namespace SolAR::api;
 using namespace SolAR::MODULES::OPENCV;
+using namespace SolAR::MODULES::TOOLS;
 using namespace SolAR::MODULES::NONFREEOPENCV;
 using namespace SolAR::MODULES::OPENGL;
 
@@ -106,7 +109,7 @@ int main(int argc, char **argv){
     SRef<display::IImageViewer> viewerMatches =xpcfComponentManager->create<SolARImageViewerOpencv>()->bindTo<display::IImageViewer>();
     SRef<solver::pose::I3DTransformFinderFrom2D2D> poseFinderFrom2D2D =xpcfComponentManager->create<SolARPoseFinderFrom2D2DOpencv>()->bindTo<solver::pose::I3DTransformFinderFrom2D2D>();
     SRef<solver::map::ITriangulator> triangulator =xpcfComponentManager->create<SolARSVDTriangulationOpencv>()->bindTo<solver::map::ITriangulator>();
-    SRef<solver::map::IMapFilter> mapFilter =xpcfComponentManager->create<SolARMapFilterOpencv>()->bindTo<solver::map::IMapFilter>();
+    SRef<solver::map::IMapFilter> mapFilter =xpcfComponentManager->create<SolARMapFilter>()->bindTo<solver::map::IMapFilter>();
 
     SRef<display::I3DPointsViewer> viewer3DPoints =xpcfComponentManager->create<SolAR3DPointsViewerOpengl>()->bindTo<display::I3DPointsViewer>();
 
