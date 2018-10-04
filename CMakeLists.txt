@@ -31,14 +31,6 @@ set(FILES_TO_COPY
 
 $ENV{BCOMDEVROOT}/thirdParties/opencv/3.4.3/lib/x86_64/shared/${BUILDCONFIG}/${LIBPREFIX}opencv_world${OPENCV_VERSION}.${LIBEXTENSION}
 
-
-
-
-
-
-
-
-
 	$ENV{BCOMDEVROOT}/thirdParties/boost/1.68.0/lib/x86_64/shared/${BUILDCONFIG}/${LIBPREFIX}boost_filesystem.${LIBEXTENSION}
 	$ENV{BCOMDEVROOT}/thirdParties/boost/1.68.0/lib/x86_64/shared/${BUILDCONFIG}/${LIBPREFIX}boost_system.${LIBEXTENSION}
 	$ENV{BCOMDEVROOT}/thirdParties/boost/1.68.0/lib/x86_64/shared/${BUILDCONFIG}/${LIBPREFIX}boost_timer.${LIBEXTENSION}
@@ -59,7 +51,10 @@ $ENV{BCOMDEVROOT}/thirdParties/opencv/3.4.3/lib/x86_64/shared/${BUILDCONFIG}/${L
 	$ENV{BCOMDEVROOT}/thirdParties/xpcf/2.0.1/lib/x86_64/shared/${BUILDCONFIG}/${LIBPREFIX}xpcf.${LIBEXTENSION}
 
 	${CMAKE_CURRENT_SOURCE_DIR}/conf_Triangulation.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/conf_Triangulation_nf.xml
 	${CMAKE_CURRENT_SOURCE_DIR}/camera_calibration.yml
+	${CMAKE_CURRENT_SOURCE_DIR}/Image1.png
+	${CMAKE_CURRENT_SOURCE_DIR}/Image2.png
 
 	)
 # define targets (library, install and uninstall)
