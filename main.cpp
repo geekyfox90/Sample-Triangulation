@@ -25,6 +25,8 @@
 
 #include "SolARModuleOpencv_traits.h"
 #include "SolARModuleOpengl_traits.h"
+#include "SolARModuleTools_traits.h"
+
 #include "SolARModuleNonFreeOpencv_traits.h"
 
 #include "xpcf/xpcf.h"
@@ -37,7 +39,8 @@
 #include "api/features/IMatchesFilter.h"
 #include "api/solver/pose/I3DTransformFinderFrom2D2D.h"
 #include "api/solver/map/ITriangulator.h"
-#include "api/display/ISideBySideOverlay.h"
+#include "api/solver/map/IMapFilter.h"
+#include "api/display/IMatchesOverlay.h"
 #include "api/display/IImageViewer.h"
 #include "api/display/I3DPointsViewer.h"
 
@@ -45,6 +48,7 @@ using namespace SolAR;
 using namespace SolAR::datastructure;
 using namespace SolAR::api;
 using namespace SolAR::MODULES::OPENCV;
+using namespace SolAR::MODULES::TOOLS;
 using namespace SolAR::MODULES::NONFREEOPENCV;
 using namespace SolAR::MODULES::OPENGL;
 
@@ -78,34 +82,36 @@ int main(int argc, char **argv){
     LOG_INFO("Start creating components");
 
     // component declaration and creation
-    auto camera =xpcfComponentManager->create<SolARCameraOpencv>()->bindTo<input::devices::ICamera>();
+    SRef<input::devices::ICamera> camera =xpcfComponentManager->create<SolARCameraOpencv>()->bindTo<input::devices::ICamera>();
     LOG_INFO("Camera loaded");
-    auto imageLoader1 =xpcfComponentManager->create<SolARImageLoaderOpencv>("image1")->bindTo<image::IImageLoader>();
+    SRef<image::IImageLoader> imageLoader1 =xpcfComponentManager->create<SolARImageLoaderOpencv>("image1")->bindTo<image::IImageLoader>();
         LOG_INFO("Image 1 loaded");
-    auto imageLoader2 =xpcfComponentManager->create<SolARImageLoaderOpencv>("image2")->bindTo<image::IImageLoader>();
+    SRef<image::IImageLoader> imageLoader2 =xpcfComponentManager->create<SolARImageLoaderOpencv>("image2")->bindTo<image::IImageLoader>();
         LOG_INFO("Image 2 loaded");
 #ifdef USE_FREE
     LOG_INFO("free keypoint detector");
-    auto keypointsDetector =xpcfComponentManager->create<SolARKeypointDetectorOpencv>()->bindTo<features::IKeypointDetector>();
+    SRef<features::IKeypointDetector> keypointsDetector =xpcfComponentManager->create<SolARKeypointDetectorOpencv>()->bindTo<features::IKeypointDetector>();
 #else
     LOG_INFO("nonfree keypoint detector");
-    auto  keypointsDetector = xpcfComponentManager->create<SolARKeypointDetectorNonFreeOpencv>()->bindTo<features::IKeypointDetector>();
+    SRef<features::IKeypointDetector>  keypointsDetector = xpcfComponentManager->create<SolARKeypointDetectorNonFreeOpencv>()->bindTo<features::IKeypointDetector>();
 #endif
 
 #ifdef USE_FREE
     LOG_INFO("free keypoint extractor");
-    auto descriptorExtractor =xpcfComponentManager->create<SolARDescriptorsExtractorAKAZE2Opencv>()->bindTo<features::IDescriptorsExtractor>();
+    SRef<features::IDescriptorsExtractor> descriptorExtractor =xpcfComponentManager->create<SolARDescriptorsExtractorAKAZE2Opencv>()->bindTo<features::IDescriptorsExtractor>();
 #else
     LOG_INFO("nonfree keypoint extractor");
-    auto descriptorExtractor = xpcfComponentManager->create<SolARDescriptorsExtractorSURF64Opencv>()->bindTo<features::IDescriptorsExtractor>();
+    SRef<features::IDescriptorsExtractor> descriptorExtractor = xpcfComponentManager->create<SolARDescriptorsExtractorSURF64Opencv>()->bindTo<features::IDescriptorsExtractor>();
 #endif
 
-    auto matcher =xpcfComponentManager->create<SolARDescriptorMatcherKNNOpencv>()->bindTo<features::IDescriptorMatcher>();
-    auto overlayMatches =xpcfComponentManager->create<SolARSideBySideOverlayOpencv>()->bindTo<display::ISideBySideOverlay>();
-    auto viewerMatches =xpcfComponentManager->create<SolARImageViewerOpencv>()->bindTo<display::IImageViewer>();
-    auto poseFinderFrom2D2D =xpcfComponentManager->create<SolARPoseFinderFrom2D2DOpencv>()->bindTo<solver::pose::I3DTransformFinderFrom2D2D>();
-    auto mapper =xpcfComponentManager->create<SolARSVDTriangulationOpencv>()->bindTo<solver::map::ITriangulator>();
-    auto viewer3DPoints =xpcfComponentManager->create<SolAR3DPointsViewerOpengl>()->bindTo<display::I3DPointsViewer>();
+    SRef<features::IDescriptorMatcher> matcher =xpcfComponentManager->create<SolARDescriptorMatcherKNNOpencv>()->bindTo<features::IDescriptorMatcher>();
+    SRef<display::IMatchesOverlay> overlayMatches =xpcfComponentManager->create<SolARMatchesOverlayOpencv>()->bindTo<display::IMatchesOverlay>();
+    SRef<display::IImageViewer> viewerMatches =xpcfComponentManager->create<SolARImageViewerOpencv>()->bindTo<display::IImageViewer>();
+    SRef<solver::pose::I3DTransformFinderFrom2D2D> poseFinderFrom2D2D =xpcfComponentManager->create<SolARPoseFinderFrom2D2DOpencv>()->bindTo<solver::pose::I3DTransformFinderFrom2D2D>();
+    SRef<solver::map::ITriangulator> triangulator =xpcfComponentManager->create<SolARSVDTriangulationOpencv>()->bindTo<solver::map::ITriangulator>();
+    SRef<solver::map::IMapFilter> mapFilter =xpcfComponentManager->create<SolARMapFilter>()->bindTo<solver::map::IMapFilter>();
+
+    SRef<display::I3DPointsViewer> viewer3DPoints =xpcfComponentManager->create<SolAR3DPointsViewerOpengl>()->bindTo<display::I3DPointsViewer>();
 
     // declarations of data structures used to exange information between components
     SRef<Image>                                         image1;
@@ -118,7 +124,7 @@ int main(int argc, char **argv){
     SRef<DescriptorBuffer>                              descriptors2;
     std::vector<DescriptorMatch>                        matches;
 
-    std::vector<SRef<CloudPoint>>                       cloud;
+    std::vector<SRef<CloudPoint>>                       cloud, filteredCloud;
 
     SRef<Image>                                         matchesImage;
 
@@ -127,7 +133,7 @@ int main(int argc, char **argv){
 
     // initialize components requiring the camera intrinsic parameters (please refeer to the use of intrinsic parameters file)
     poseFinderFrom2D2D->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistorsionParameters());
-    mapper->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistorsionParameters());
+    triangulator->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistorsionParameters());
 
     // Get first image
     if (imageLoader1->getImage(image1) != FrameworkReturnCode::_SUCCESS)
@@ -159,16 +165,17 @@ int main(int argc, char **argv){
     LOG_INFO("Number of matches used for triangulation {}//{}", matches.size(), nbMatches);
     LOG_INFO("Estimated pose of the camera for the frame 2: \n {}", poseFrame2.matrix());
     // Create a image showing the matches used for pose estimation of the second camera
-    overlayMatches->drawMatchesLines(image1, image2, matchesImage, keypoints1, keypoints2, matches);
+    overlayMatches->draw(image1, image2, matchesImage, keypoints1, keypoints2, matches);
 
     // Triangulate the inliers keypoints which match
-    double reproj_error = mapper->triangulate(keypoints1,keypoints2,matches,std::make_pair(0, 1),poseFrame1,poseFrame2,cloud);
+    double reproj_error = triangulator->triangulate(keypoints1,keypoints2,matches,std::make_pair(0, 1),poseFrame1,poseFrame2,cloud);
     LOG_INFO("Reprojection error: {}", reproj_error);
+    mapFilter->filter(poseFrame1, poseFrame2, cloud, filteredCloud);
 
     // Display the matches and the 3D point cloud
     while (true){
         if (
-            viewer3DPoints->display(cloud, poseFrame2) == FrameworkReturnCode::_STOP ||
+            viewer3DPoints->display(filteredCloud, poseFrame2) == FrameworkReturnCode::_STOP ||
             viewerMatches->display(matchesImage) == FrameworkReturnCode::_STOP  )
         {
            LOG_INFO("End of Triangulation sample");
