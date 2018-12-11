@@ -27,7 +27,9 @@
 #include "SolARModuleOpengl_traits.h"
 #include "SolARModuleTools_traits.h"
 
+#ifndef USE_FREE
 #include "SolARModuleNonFreeOpencv_traits.h"
+#endif
 
 #include "xpcf/xpcf.h"
 
