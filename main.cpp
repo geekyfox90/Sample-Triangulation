@@ -32,7 +32,7 @@
 #endif
 
 #include "xpcf/xpcf.h"
-
+#include "core/Log.h"
 #include "api/image/IImageLoader.h"
 #include "api/input/devices/ICamera.h"
 #include "api/features/IKeypointDetector.h"
