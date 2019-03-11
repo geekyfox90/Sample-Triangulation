@@ -32,7 +32,7 @@
 #endif
 
 #include "xpcf/xpcf.h"
-
+#include "core/Log.h"
 #include "api/image/IImageLoader.h"
 #include "api/input/devices/ICamera.h"
 #include "api/features/IKeypointDetector.h"
@@ -45,6 +45,7 @@
 #include "api/display/IMatchesOverlay.h"
 #include "api/display/IImageViewer.h"
 #include "api/display/I3DPointsViewer.h"
+#include "core/Log.h"
 
 using namespace SolAR;
 using namespace SolAR::datastructure;
