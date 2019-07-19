@@ -24,7 +24,7 @@
 // ADD COMPONENTS HEADERS HERE
 
 #include "SolARModuleOpencv_traits.h"
-#include "SolARModuleOpengl_traits.h"
+
 #include "SolARModuleTools_traits.h"
 
 #ifndef USE_FREE
@@ -55,7 +55,11 @@ using namespace SolAR::MODULES::TOOLS;
 #ifndef USE_FREE
 using namespace SolAR::MODULES::NONFREEOPENCV;
 #endif
+
+#ifdef SOLAR_USE_OPENGL
+#include "SolARModuleOpengl_traits.h"
 using namespace SolAR::MODULES::OPENGL;
+#endif
 
 namespace xpcf = org::bcom::xpcf;
 
@@ -115,8 +119,9 @@ int main(int argc, char **argv){
     SRef<solver::pose::I3DTransformFinderFrom2D2D> poseFinderFrom2D2D =xpcfComponentManager->create<SolARPoseFinderFrom2D2DOpencv>()->bindTo<solver::pose::I3DTransformFinderFrom2D2D>();
     SRef<solver::map::ITriangulator> triangulator =xpcfComponentManager->create<SolARSVDTriangulationOpencv>()->bindTo<solver::map::ITriangulator>();
     SRef<solver::map::IMapFilter> mapFilter =xpcfComponentManager->create<SolARMapFilter>()->bindTo<solver::map::IMapFilter>();
-
-    SRef<display::I3DPointsViewer> viewer3DPoints =xpcfComponentManager->create<SolAR3DPointsViewerOpengl>()->bindTo<display::I3DPointsViewer>();
+#ifdef SOLAR_USE_OPENGL
+   SRef<display::I3DPointsViewer> viewer3DPoints =xpcfComponentManager->create<SolAR3DPointsViewerOpengl>()->bindTo<display::I3DPointsViewer>();
+#endif
 
     // declarations of data structures used to exange information between components
     SRef<Image>                                         image1;
@@ -180,7 +185,9 @@ int main(int argc, char **argv){
     // Display the matches and the 3D point cloud
     while (true){
         if (
+#ifdef SOLAR_USE_OPENGL
             viewer3DPoints->display(filteredCloud, poseFrame2) == FrameworkReturnCode::_STOP ||
+#endif
             viewerMatches->display(matchesImage) == FrameworkReturnCode::_STOP  )
         {
            LOG_INFO("End of Triangulation sample");

@@ -38,9 +38,14 @@ macx {
     QMAKE_CXXFLAGS += -fasm-blocks -x objective-c++
 }
 
+linux {
+    DEFINES += SOLAR_USE_OPENGL
+}
+
 win32 {
     QMAKE_LFLAGS += /MACHINE:X64
     DEFINES += WIN64 UNICODE _UNICODE
+    DEFINES += SOLAR_USE_OPENGL
     QMAKE_COMPILER_DEFINES += _WIN64
 
     # Windows Kit (msvc2013 64)
@@ -51,3 +56,11 @@ win32 {
 
 
 message($${QMAKE_CXXFLAGS})
+
+DISTFILES += \
+    conf_Triangulation.xml
+
+xpcf_xml_files.path = $$(HOME)/.xpcf
+xpcf_xml_files.files=$$files($${PWD}/conf_Triangulation.xml)
+
+INSTALLS += xpcf_xml_files
