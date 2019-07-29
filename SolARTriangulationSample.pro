@@ -45,12 +45,12 @@ linux {
 win32 {
     QMAKE_LFLAGS += /MACHINE:X64
     DEFINES += WIN64 UNICODE _UNICODE
-    DEFINES += SOLAR_USE_OPENGL
+    #DEFINES += SOLAR_USE_OPENGL
     QMAKE_COMPILER_DEFINES += _WIN64
 
     # Windows Kit (msvc2013 64)
-    LIBS += -L$$(WINDOWSSDKDIR)lib/winv6.3/um/x64 -lshell32 -lgdi32 -lComdlg32
-    INCLUDEPATH += $$(WINDOWSSDKDIR)lib/winv6.3/um/x64
+#    LIBS += -L$$(WINDOWSSDKDIR)lib/winv6.3/um/x64 -lshell32 -lgdi32 -lComdlg32
+#   INCLUDEPATH += $$(WINDOWSSDKDIR)lib/winv6.3/um/x64
 
 }
 
