@@ -91,60 +91,67 @@ int main(int argc, char **argv){
     LOG_INFO("Start creating components");
 
     // component declaration and creation
-    SRef<input::devices::ICamera> camera =xpcfComponentManager->create<SolARCameraOpencv>()->bindTo<input::devices::ICamera>();
+    auto camera = xpcfComponentManager->resolve<input::devices::ICamera>();
     LOG_INFO("Camera loaded");
-    SRef<image::IImageLoader> imageLoader1 =xpcfComponentManager->create<SolARImageLoaderOpencv>("image1")->bindTo<image::IImageLoader>();
-        LOG_INFO("Image 1 loaded");
-    SRef<image::IImageLoader> imageLoader2 =xpcfComponentManager->create<SolARImageLoaderOpencv>("image2")->bindTo<image::IImageLoader>();
-        LOG_INFO("Image 2 loaded");
+
+/*
+ * RESOLVE ??
+ *
+ */
+    auto imageLoader1 = xpcfComponentManager->create<SolARImageLoaderOpencv>("image1")->bindTo<image::IImageLoader>();
+    LOG_INFO("Image 1 loaded");
+    auto imageLoader2 = xpcfComponentManager->create<SolARImageLoaderOpencv>("image2")->bindTo<image::IImageLoader>();
+    LOG_INFO("Image 2 loaded");
+  ///////////////////////////////////
+  ///////////////////////////////////
+
 #ifdef USE_FREE
     LOG_INFO("free keypoint detector");
-    SRef<features::IKeypointDetector> keypointsDetector =xpcfComponentManager->create<SolARKeypointDetectorOpencv>()->bindTo<features::IKeypointDetector>();
+    auto keypointsDetector =xpcfComponentManager->resolve<features::IKeypointDetector>();
 #else
     LOG_INFO("nonfree keypoint detector");
-    SRef<features::IKeypointDetector>  keypointsDetector = xpcfComponentManager->create<SolARKeypointDetectorNonFreeOpencv>()->bindTo<features::IKeypointDetector>();
+    auto  keypointsDetector = xpcfComponentManager->resolve<features::IKeypointDetector>();
 #endif
 
 #ifdef USE_FREE
     LOG_INFO("free keypoint extractor");
-    SRef<features::IDescriptorsExtractor> descriptorExtractor =xpcfComponentManager->create<SolARDescriptorsExtractorAKAZE2Opencv>()->bindTo<features::IDescriptorsExtractor>();
+    auto descriptorExtractor =xpcfComponentManager->resolve<features::IDescriptorsExtractor>();
 #else
     LOG_INFO("nonfree keypoint extractor");
-    SRef<features::IDescriptorsExtractor> descriptorExtractor = xpcfComponentManager->create<SolARDescriptorsExtractorSURF64Opencv>()->bindTo<features::IDescriptorsExtractor>();
+    auto descriptorExtractor = xpcfComponentManager->resolve<features::IDescriptorsExtractor>();
 #endif
 
-    SRef<features::IDescriptorMatcher> matcher =xpcfComponentManager->create<SolARDescriptorMatcherKNNOpencv>()->bindTo<features::IDescriptorMatcher>();
-    SRef<display::IMatchesOverlay> overlayMatches =xpcfComponentManager->create<SolARMatchesOverlayOpencv>()->bindTo<display::IMatchesOverlay>();
-    SRef<display::IImageViewer> viewerMatches =xpcfComponentManager->create<SolARImageViewerOpencv>()->bindTo<display::IImageViewer>();
-    SRef<solver::pose::I3DTransformFinderFrom2D2D> poseFinderFrom2D2D =xpcfComponentManager->create<SolARPoseFinderFrom2D2DOpencv>()->bindTo<solver::pose::I3DTransformFinderFrom2D2D>();
-    SRef<solver::map::ITriangulator> triangulator =xpcfComponentManager->create<SolARSVDTriangulationOpencv>()->bindTo<solver::map::ITriangulator>();
-    SRef<solver::map::IMapFilter> mapFilter =xpcfComponentManager->create<SolARMapFilter>()->bindTo<solver::map::IMapFilter>();
+    auto matcher =xpcfComponentManager->resolve<features::IDescriptorMatcher>();
+    auto overlayMatches =xpcfComponentManager->resolve<display::IMatchesOverlay>();
+    auto viewerMatches =xpcfComponentManager->resolve<display::IImageViewer>();
+    auto poseFinderFrom2D2D =xpcfComponentManager->resolve<solver::pose::I3DTransformFinderFrom2D2D>();
+    auto triangulator =xpcfComponentManager->resolve<solver::map::ITriangulator>();
+    auto mapFilter =xpcfComponentManager->resolve<solver::map::IMapFilter>();
 #ifdef SOLAR_USE_OPENGL
-   SRef<display::I3DPointsViewer> viewer3DPoints =xpcfComponentManager->create<SolAR3DPointsViewerOpengl>()->bindTo<display::I3DPointsViewer>();
+   auto viewer3DPoints =xpcfComponentManager->resolve<display::I3DPointsViewer>();
 #endif
 
     // declarations of data structures used to exange information between components
-    SRef<Image>                                         image1;
-    SRef<Image>                                         image2;
+    SRef<Image>                                  image1;
+    SRef<Image>                                  image2;
 
-    std::vector< SRef<Keypoint>>                        keypoints1;
-    std::vector< SRef<Keypoint>>                        keypoints2;
+    std::vector<Keypoint>                        keypoints1;
+    std::vector<Keypoint>                        keypoints2;
 
-    SRef<DescriptorBuffer>                              descriptors1;
-    SRef<DescriptorBuffer>                              descriptors2;
-    std::vector<DescriptorMatch>                        matches;
-
-    //std::vector<SRef<CloudPoint>>                       cloud, filteredCloud;
+    SRef<DescriptorBuffer>                       descriptors1;
+    SRef<DescriptorBuffer>                       descriptors2;
+    std::vector<DescriptorMatch>                 matches;
     std::vector<CloudPoint>                      cloud, filteredCloud;
 
-    SRef<Image>                                         matchesImage;
+    SRef<Image>                                  matchesImage;
 
-    Transform3Df                                        poseFrame1 = Transform3Df::Identity();
-    Transform3Df                                        poseFrame2;
+    Transform3Df                                 poseFrame1 = Transform3Df::Identity();
+    Transform3Df                                 poseFrame2;
 
     // initialize components requiring the camera intrinsic parameters (please refeer to the use of intrinsic parameters file)
     poseFinderFrom2D2D->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistorsionParameters());
     triangulator->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistorsionParameters());
+    LOG_INFO("SetCameraParameters OK - Images OK");
 
     // Get first image
     if (imageLoader1->getImage(image1) != FrameworkReturnCode::_SUCCESS)
@@ -159,7 +166,6 @@ int main(int argc, char **argv){
         LOG_ERROR("Cannot load image 2 with path {}", imageLoader2->bindTo<xpcf::IConfigurable>()->getProperty("pathFile")->getStringValue());
         return -1;
     }
-
     // Detect the keypoints for the first image
     keypointsDetector->detect(image1, keypoints1);
     // Detect the keypoints for the second image

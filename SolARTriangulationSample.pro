@@ -1,5 +1,5 @@
 TARGET = SolARTriangulationSample
-VERSION=0.5.2
+VERSION=0.6.0
 
 CONFIG += c++1z
 CONFIG -= qt
@@ -19,9 +19,11 @@ CONFIG(release,debug|release) {
 win32:CONFIG -= static
 win32:CONFIG += shared
 
-DEPENDENCIESCONFIG = sharedlib recurse
+DEPENDENCIESCONFIG = sharedlib recurse install
 #NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib MUST BE DEFINED BEFORE templatelibconfig.pri inclusion
 include (../builddefs/qmake/templateappconfig.pri)
+
+PROJECTCONFIG = QTVS
 
 HEADERS += \
 
@@ -64,3 +66,6 @@ xpcf_xml_files.path = $$(HOME)/.xpcf
 xpcf_xml_files.files=$$files($${PWD}/conf_Triangulation.xml)
 
 INSTALLS += xpcf_xml_files
+
+#NOTE : Must be placed at the end of the .pro
+include (../builddefs/qmake/remaken_install_lib.pri)
