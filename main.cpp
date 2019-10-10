@@ -134,8 +134,8 @@ int main(int argc, char **argv){
     SRef<DescriptorBuffer>                              descriptors2;
     std::vector<DescriptorMatch>                        matches;
 
-    //std::vector<SRef<CloudPoint>>                       cloud, filteredCloud;
-    std::vector<CloudPoint>                      cloud, filteredCloud;
+    std::vector<SRef<CloudPoint>>                       cloud, filteredCloud;
+    //std::vector<CloudPoint>                      cloud, filteredCloud;
 
     SRef<Image>                                         matchesImage;
 
