@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <xpcf-registry>
     
-	<module uuid="15e1990b-86b2-445c-8194-0cbe80ede970" name="SolARModuleOpenCV" path="$BCOMDEVROOT/bcomBuild/SolARModuleOpenCV/0.6.0/lib/x86_64/shared">0
+	<module uuid="15e1990b-86b2-445c-8194-0cbe80ede970" name="SolARModuleOpenCV" path="$REMAKENROOT/packages/SolARBuild/win-cl-14.1/SolARModuleOpenCV/0.6.0/lib/x86_64/shared">0
          <component uuid="5B7396F4-A804-4F3C-A0EB-FB1D56042BB4" description="SolARCameraOpencv">
                 <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect"/>
                 <interface uuid="5DDC7DF0-8377-437F-9C81-3643F7676A5B" description="ICamera"/>
@@ -47,14 +47,14 @@
 		
     </module>
 	
-	 <module uuid="6e960df6-9a36-11e8-9eb6-529269fb1459" name="SolARModuleOpenGL" path="$BCOMDEVROOT/bcomBuild/SolARModuleOpenGL/0.6.0/lib/x86_64/shared">
+	 <module uuid="6e960df6-9a36-11e8-9eb6-529269fb1459" name="SolARModuleOpenGL" path="$REMAKENROOT/packages/SolARBuild/win-cl-14.1/SolARModuleOpenGL/0.6.0/lib/x86_64/shared">
         <component uuid="afd38ea0-9a46-11e8-9eb6-529269fb1459" description="SolAR3DPointsViewerOpengl">
                 <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect"/>
                 <interface uuid="575d365a-9a27-11e8-9eb6-529269fb1459" description="I3DPointsViewer"/>
         </component>
     </module> 
     
-	   <module uuid="2bce6a98-2ad7-4cd5-bd63-b3ee68fb59c0" name="SolARModuleNonFreeOpenCV" path="$BCOMDEVROOT/bcomBuild/SolARModuleNonFreeOpenCV/0.6.0/lib/x86_64/shared">
+	   <module uuid="2bce6a98-2ad7-4cd5-bd63-b3ee68fb59c0" name="SolARModuleNonFreeOpenCV" path="$REMAKENROOT/packages/SolARBuild/win-cl-14.1/SolARModuleNonFreeOpenCV/0.6.0/lib/x86_64/shared">
         <component uuid="3787eaa6-d0a0-11e7-8fab-cec278b6b50a" description="SolARDescriptorsExtractorSIFTOpencv">
                 <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect"/>
                 <interface uuid="c0e49ff1-0696-4fe6-85a8-9b2c1e155d2e" description="IDescriptorsExtractor"/>
