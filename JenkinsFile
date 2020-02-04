@@ -27,7 +27,7 @@ pipeline {
             }
         }
      
-        stage("Get Third Parties") {
+        stage("Get Third Parties Release") {
              when {
                 expression { params.RELEASE == true }
              }               
@@ -35,6 +35,15 @@ pipeline {
                 getThirdParties('1.0.0')
              }
         }
+
+        stage("Get Third Parties") {
+            when {
+                expression { params.RELEASE == false }
+            }                   
+            steps {
+                installDependency('freeglut','3.0.0')
+            }
+        }          
 
         stage("Build") {
              steps {
