@@ -1,0 +1,81 @@
+pipeline {
+    agent {
+        label "jenkins-slave-argo-qmake"
+    }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+    parameters {
+        booleanParam(name: 'RELEASE',
+            defaultValue: false,
+            description: 'Create a Release')
+    }
+    triggers { pollSCM('* * * * *') }    
+    stages {
+
+        stage("Get Binaries") {
+            when {
+                expression { params.RELEASE == false }
+            }            
+            steps {
+                script {
+                    BRANCH = BRANCH_NAME.replace('/','_')
+                }
+                withCredentials([usernamePassword(credentialsId: 'bc6e150e-ede8-4e35-8af4-0f037edee8ac', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
+                    getBinaries(BRANCH,USERNAME,PASSWORD)
+                }
+            }
+        }
+     
+        stage("Get Third Parties") {
+             when {
+                expression { params.RELEASE == true }
+             }               
+             steps {
+                getThirdParties('1.0.0')
+             }
+        }
+
+        stage("Build") {
+             steps {
+                 withEnv(['REMAKEN_RULES_ROOT=/home/jenkins/.remaken/rules/']) {
+                     sh "qmake SolARTriangulationSample.pro"
+                     sh "make"
+                     sh "make install"
+                 }
+             }
+        }
+
+        stage("Build Debug") {
+            when {
+                expression { params.RELEASE == true }
+            }            
+             steps {
+                 withEnv(['REMAKEN_RULES_ROOT=/home/jenkins/.remaken/rules/']) {
+                     sh "qmake SolARTriangulationSample.pro CONFIG+=debug"
+                     sh "make"
+                     sh "make install"
+                 }
+             }
+        }        
+
+        stage("Release") {
+            when {
+                expression { params.RELEASE == true }
+            }
+            steps {
+                script {
+                    version = sh (
+                        script: "cat *.pro  | grep VERSION | head -1 | cut -d '=' -f 2",
+                        returnStdout: true
+                    )
+                    version = version.replace("\n","")
+                }                
+                prepareRelease("SolARBuild","linux-gcc","Sample-Triangulation")                
+                withCredentials([string(credentialsId: 'github-token', variable: 'token')]) {
+                    release("Sample-Triangulation","v${version}","${WORKSPACE}/artifactory/x86_64_shared_release/Sample-Triangulation_${version}_x86_64_shared_release.zip ${WORKSPACE}/artifactory/x86_64_shared_debug/Sample-Triangulation_${version}_x86_64_shared_debug.zip",token);
+                }
+            }   
+        }
+}
+}
